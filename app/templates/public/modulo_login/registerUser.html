@@ -1,0 +1,52 @@
+<h3 class="text-center mb-4">Crear Cuenta de Usuario</h3>
+
+<form name="formRegisterUser" id="formRegisterUser" action="{{ url_for('registerUser') }}" method="POST" autocomplete="off">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" name="nombre" class="form-control" autofocus required>
+        </div>
+        <div class="col-md-6">
+            <label for="apellido" class="form-label">Apellido</label>
+            <input type="text" name="apellido" class="form-control" required>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="email" class="form-label">Correo Electrónico</label>
+        <input type="email" name="email" class="form-control" required>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="password" class="form-label">Contraseña</label>
+            <input type="password" name="password" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+            <label for="repite_password" class="form-label">Repetir Contraseña</label>
+            <input type="password" name="repite_password" class="form-control" required>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="pais" class="form-label">País de Nacimiento</label>
+        <select name="pais" class="form-control" required>
+            <option value="" selected="selected">--- Seleccione ---</option>
+            {% for country in dataPaises %}
+                <option value="{{ country.name_country }}">{{ country.name_country }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div class="d-grid gap-2 mt-4">
+        <button type="submit" class="btn btn-primary btn-send" id="sendForm">Crear Cuenta</button>
+    </div>
+
+    <div class="mt-3 text-center">
+        <span>Ya tengo cuenta, </span>
+        <a href="#" style="color: #555;" class="volverViewLogin">
+            <i class="bi bi-arrow-left-short"></i>
+            Volver
+        </a>
+    </div>
+</form>
