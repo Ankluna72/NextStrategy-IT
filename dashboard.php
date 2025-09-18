@@ -6,6 +6,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit();
 }
 
+$pageStyles = ['css/dashboard.css'];
 require_once 'includes/db_connection.php';
 require_once 'includes/header.php'; // Incluye Bootstrap CSS
 
@@ -150,16 +151,17 @@ if ($id_empresa_seleccionada) {
     }
 </style>
 
-<nav class="navbar navbar-expand-lg navbar-dark mb-4">
+<nav class="navbar navbar-expand-lg navbar-dashboard mb-4">
     <div class="container-fluid">
         <a class="navbar-brand" href="dashboard.php">
+            <img src="images/logo.png" alt="NexStrategy-IT" style="height: 40px; margin-right: 10px;">
             Plan Estratégico de TI
         </a>
         <div class="d-flex">
             <span class="navbar-text me-3">
                 Bienvenido, <strong><?php echo htmlspecialchars($nombre_usuario_actual); ?></strong>
             </span>
-            <a href="logout.php" class="btn btn-outline-danger btn-sm">Cerrar Sesión</a>
+            <a href="logout.php" class="btn btn-logout btn-sm">Cerrar Sesión</a>
         </div>
     </div>
 </nav>
@@ -173,7 +175,7 @@ if ($id_empresa_seleccionada) {
 
     <div class="row mb-4 align-items-center sticky-top-actions">
         <div class="col-md-6">
-            <h4 class="mb-0 text-white-50">Empresa Actual: <span class="text-white"><?php echo htmlspecialchars($nombre_empresa_actual); ?></span></h4>
+            <h4 class="mb-0 text-white-50">Empresa Actual: <span class="company-current"><?php echo htmlspecialchars($nombre_empresa_actual); ?></span></h4>
         </div>
         <div class="col-md-6 text-end">
             <button class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#seleccionarEmpresaModal">

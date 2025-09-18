@@ -6,6 +6,13 @@
     <title>Plan Estratégico de TI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
+    <?php
+    if (isset($pageStyles) && is_array($pageStyles)) {
+        foreach ($pageStyles as $cssFile) {
+            echo '<link href="' . htmlspecialchars($cssFile) . '" rel="stylesheet">';
+        }
+    }
+    ?>
 </head>
 <body>
     <div class="container mt-4">
