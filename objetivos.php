@@ -16,158 +16,193 @@ require_once 'includes/header.php';
 
 $id_empresa_actual = $_SESSION['id_empresa_actual'];
 $mensaje = '';
-$datos_guardados = [
-    'uens' => '',
-    'objetivos_especificos' => []
-];
 
-$stmt_empresa = $mysqli->prepare("SELECT mision, vision, valores FROM empresa WHERE id = ?");
-$stmt_empresa->bind_param("i", $id_empresa_actual);
-$stmt_empresa->execute();
-$resultado_empresa = $stmt_empresa->get_result();
-$empresa_data = $resultado_empresa->fetch_assoc();
-$stmt_empresa->close();
-
-$valores_lista = !empty($empresa_data['valores']) ? explode("\n", trim($empresa_data['valores'])) : [];
-
+// Manejar la lógica de POST para añadir o eliminar objetivos
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $uens = $_POST['uens'] ?? '';
-    $objetivos_especificos_post = $_POST['objetivos_especificos'] ?? [];
-    
-    $contenido_a_guardar = [
-        'uens' => $uens,
-        'objetivos_especificos' => $objetivos_especificos_post
-    ];
-
-    $json_contenido = json_encode($contenido_a_guardar);
-    $tipo_analisis = 'Objetivos Estrategicos';
-
-    $stmt_check = $mysqli->prepare("SELECT id FROM empresa_detalle WHERE id_empresa = ? AND tipo_analisis = ?");
-    $stmt_check->bind_param("is", $id_empresa_actual, $tipo_analisis);
-    $stmt_check->execute();
-    $resultado_check = $stmt_check->get_result();
-    $stmt_check->close();
-
-    if ($resultado_check->num_rows > 0) {
-        $stmt_update = $mysqli->prepare("UPDATE empresa_detalle SET contenido = ? WHERE id_empresa = ? AND tipo_analisis = ?");
-        $stmt_update->bind_param("sis", $json_contenido, $id_empresa_actual, $tipo_analisis);
-        $exito = $stmt_update->execute();
-        $stmt_update->close();
-    } else {
-        $stmt_insert = $mysqli->prepare("INSERT INTO empresa_detalle (id_empresa, tipo_analisis, contenido) VALUES (?, ?, ?)");
-        $stmt_insert->bind_param("iss", $id_empresa_actual, $tipo_analisis, $json_contenido);
-        $exito = $stmt_insert->execute();
-        $stmt_insert->close();
+    // Añadir un nuevo objetivo GENERAL
+    if (isset($_POST['add_general'])) {
+        $descripcion = trim($_POST['descripcion_general']);
+        if (!empty($descripcion)) {
+            $stmt = $mysqli->prepare("INSERT INTO objetivos_estrategicos (id_empresa, descripcion, tipo) VALUES (?, ?, 'general')");
+            $stmt->bind_param("is", $id_empresa_actual, $descripcion);
+            if ($stmt->execute()) {
+                $mensaje = '<div class="alert alert-success">Objetivo general añadido correctamente.</div>';
+            } else {
+                $mensaje = '<div class="alert alert-danger">Error al añadir el objetivo general.</div>';
+            }
+            $stmt->close();
+        }
     }
 
-    if ($exito) {
-        $mensaje = '<div class="alert alert-success">Objetivos Estratégicos guardados correctamente.</div>';
-    } else {
-        $mensaje = '<div class="alert alert-danger">Error al guardar los datos.</div>';
+    // Añadir un nuevo objetivo ESPECÍFICO
+    if (isset($_POST['add_especifico'])) {
+        $descripcion = trim($_POST['descripcion_especifico']);
+        $id_padre = $_POST['id_padre'];
+        if (!empty($descripcion) && !empty($id_padre)) {
+            $stmt = $mysqli->prepare("INSERT INTO objetivos_estrategicos (id_empresa, descripcion, tipo, id_padre) VALUES (?, ?, 'especifico', ?)");
+            $stmt->bind_param("isi", $id_empresa_actual, $descripcion, $id_padre);
+            if ($stmt->execute()) {
+                $mensaje = '<div class="alert alert-success">Objetivo específico añadido correctamente.</div>';
+            } else {
+                $mensaje = '<div class="alert alert-danger">Error al añadir el objetivo específico.</div>';
+            }
+            $stmt->close();
+        }
+    }
+
+    // Eliminar un objetivo
+    if (isset($_POST['delete_objetivo'])) {
+        $id_objetivo = $_POST['id_objetivo'];
+        // Opcional: Para evitar que se eliminen objetivos generales con hijos, primero verificar.
+        // En este caso, la BD se encarga por ON DELETE CASCADE, eliminando hijos automáticamente.
+        $stmt = $mysqli->prepare("DELETE FROM objetivos_estrategicos WHERE id = ? AND id_empresa = ?");
+        $stmt->bind_param("ii", $id_objetivo, $id_empresa_actual);
+        if ($stmt->execute()) {
+            $mensaje = '<div class="alert alert-info">Objetivo eliminado correctamente.</div>';
+        } else {
+            $mensaje = '<div class="alert alert-danger">Error al eliminar el objetivo.</div>';
+        }
+        $stmt->close();
     }
 }
 
-$stmt_select = $mysqli->prepare("SELECT contenido FROM empresa_detalle WHERE id_empresa = ? AND tipo_analisis = 'Objetivos Estrategicos'");
-$stmt_select->bind_param("i", $id_empresa_actual);
-$stmt_select->execute();
-$resultado_select = $stmt_select->get_result();
-if ($fila = $resultado_select->fetch_assoc()) {
-    $datos_guardados = json_decode($fila['contenido'], true);
+// Obtener todos los objetivos de la empresa y organizarlos
+$objetivos = [];
+$stmt = $mysqli->prepare("SELECT id, descripcion, tipo, id_padre FROM objetivos_estrategicos WHERE id_empresa = ? ORDER BY id_padre ASC, id ASC");
+$stmt->bind_param("i", $id_empresa_actual);
+$stmt->execute();
+$resultado = $stmt->get_result();
+
+$objetivos_generales = [];
+$objetivos_especificos = [];
+
+while ($row = $resultado->fetch_assoc()) {
+    if ($row['tipo'] == 'general') {
+        $objetivos_generales[$row['id']] = $row;
+        $objetivos_generales[$row['id']]['especificos'] = [];
+    } else {
+        $objetivos_especificos[] = $row;
+    }
 }
-$stmt_select->close();
+
+foreach ($objetivos_especificos as $especifico) {
+    if (isset($objetivos_generales[$especifico['id_padre']])) {
+        $objetivos_generales[$especifico['id_padre']]['especificos'][] = $especifico;
+    }
+}
+$stmt->close();
 
 ?>
+<style>
+    .objetivo-general-card {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: .25rem;
+        margin-bottom: 1.5rem;
+        padding: 1.25rem;
+    }
+    .objetivo-general-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    .objetivo-general-title {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin-bottom: 0;
+    }
+    .objetivo-especifico-list {
+        list-style: none;
+        padding-left: 0;
+    }
+    .objetivo-especifico-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #fff;
+        padding: .75rem 1.25rem;
+        border: 1px solid #e9ecef;
+        margin-top: .5rem;
+        border-radius: .25rem;
+    }
+    .form-add-especifico {
+        display: flex;
+        gap: 10px;
+        margin-top: 1rem;
+    }
+</style>
+
 <div class="container mt-4">
     <div class="module-container">
         <div class="module-header">
             <h2 class="module-title">4. OBJETIVOS ESTRATÉGICOS</h2>
         </div>
         <div class="module-content">
-            <div class="row">
-                <div class="col-lg-5">
-                    <div class="explanation-box">
-                        <p>Un <strong>OBJETIVO ESTRATÉGICO</strong> es un fin deseado, clave para la organización y para la consecución de su visión. Para una correcta planificación construya los objetivos formando una pirámide.</p>
-                    </div>
+            <?php echo $mensaje; ?>
 
-                    <div class="examples-card">
-                        <div class="examples-header">Unidades Estratégicas de Negocio (UEN)</div>
-                        <div class="examples-body">
-                            <p><small>En empresas de gran tamaño, se pueden formular los objetivos en función de sus diferentes UEN. Se entiende por UEN un conjunto homogéneo de actividades o negocios, desde el punto de vista estratégico, para el cual es posible formular una estrategia común.</small></p>
-                        </div>
-                    </div>
-                    
-                    <div class="examples-card">
-                        <div class="examples-header">EJEMPLOS</div>
-                        <div class="examples-body">
-                            <p><small>• Alcanzar los niveles de ventas previstos para los nuevos productos.</small></p>
-                            <p><small>• Reducir la rotación del personal del almacén.</small></p>
-                            <p><small>• Reducir el plazo de cobro de los clientes.</small></p>
-                        </div>
-                    </div>
+            <!-- Formulario para añadir Objetivo General -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    Añadir Nuevo Objetivo General
                 </div>
-
-                <div class="col-lg-7">
+                <div class="card-body">
                     <form action="objetivos.php" method="POST">
-                        <?php echo $mensaje; ?>
-                        <div class="form-card mb-4">
-                            <div class="form-header">En su caso, comente en este apartado las distintas UEN que tiene su empresa</div>
-                            <div class="form-body">
-                                <div class="mb-3">
-                                    <label for="uens" class="form-label">Unidades Estratégicas de Negocio</label>
-                                    <textarea class="form-control" name="uens" id="uens" rows="5" placeholder="Describe las UEN de tu empresa..."><?php echo htmlspecialchars($datos_guardados['uens']); ?></textarea>
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <textarea class="form-control" name="descripcion_general" rows="3" placeholder="Describe aquí el objetivo general o estratégico..."></textarea>
                         </div>
-
-                        <div class="form-card">
-                            <div class="form-header">A continuación reflexione sobre la misión, visión y valores definidos y establezca los objetivos</div>
-                            <div class="form-body">
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-module">
-                                        <thead>
-                                            <tr>
-                                                <th></th>
-                                                <th>OBJETIVOS GENERALES O ESTRATÉGICOS</th>
-                                                <th>OBJETIVOS ESPECÍFICOS</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <th>MISIÓN</th>
-                                                <td class="table-info-cell"><?php echo htmlspecialchars($empresa_data['mision']); ?></td>
-                                                <td><input type="text" name="objetivos_especificos[mision]" class="form-control" value="<?php echo htmlspecialchars($datos_guardados['objetivos_especificos']['mision'] ?? ''); ?>" placeholder="Objetivo específico..."></td>
-                                            </tr>
-                                            <tr>
-                                                <th>VISIÓN</th>
-                                                <td class="table-info-cell"><?php echo htmlspecialchars($empresa_data['vision']); ?></td>
-                                                <td><input type="text" name="objetivos_especificos[vision]" class="form-control" value="<?php echo htmlspecialchars($datos_guardados['objetivos_especificos']['vision'] ?? ''); ?>" placeholder="Objetivo específico..."></td>
-                                            </tr>
-                                            <?php foreach ($valores_lista as $index => $valor): if(empty(trim($valor))) continue; ?>
-                                            <tr>
-                                                <?php if($index === 0): ?>
-                                                <th rowspan="<?php echo count($valores_lista); ?>">VALORES</th>
-                                                <?php endif; ?>
-                                                <td class="table-info-cell"><?php echo htmlspecialchars(trim($valor)); ?></td>
-                                                <td><input type="text" name="objetivos_especificos[valor_<?php echo $index; ?>]" class="form-control" value="<?php echo htmlspecialchars($datos_guardados['objetivos_especificos']['valor_'.$index] ?? ''); ?>" placeholder="Objetivo específico..."></td>
-                                            </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="text-center mt-4">
-                            <button type="submit" class="btn btn-save btn-lg">Guardar Objetivos Estratégicos</button>
-                        </div>
+                        <button type="submit" name="add_general" class="btn btn-primary">Guardar Objetivo General</button>
                     </form>
-                    
-                    <div class="d-flex justify-content-between mt-4">
-                        <a href="valores.php" class="btn btn-nav">&laquo; Anterior: Valores</a>
-                        <a href="dashboard.php" class="btn btn-nav-outline">Volver al Índice</a>
-                        <a href="analisis_foda.php" class="btn btn-save">Siguiente: Análisis FODA &raquo;</a>
-                    </div>
                 </div>
+            </div>
+
+            <!-- Lista de Objetivos -->
+            <h3 class="mt-5 mb-3">Mis Objetivos</h3>
+            <div id="lista-objetivos">
+                <?php if (empty($objetivos_generales)): ?>
+                    <p>Aún no has añadido ningún objetivo general.</p>
+                <?php else: ?>
+                    <?php foreach ($objetivos_generales as $general): ?>
+                        <div class="objetivo-general-card">
+                            <div class="objetivo-general-header">
+                                <h5 class="objetivo-general-title"><?php echo htmlspecialchars($general['descripcion']); ?></h5>
+                                <form action="objetivos.php" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este objetivo general y todos sus objetivos específicos asociados?');">
+                                    <input type="hidden" name="id_objetivo" value="<?php echo $general['id']; ?>">
+                                    <button type="submit" name="delete_objetivo" class="btn btn-danger btn-sm">Eliminar</button>
+                                </form>
+                            </div>
+                            
+                            <h6>Objetivos Específicos:</h6>
+                            <?php if (empty($general['especificos'])): ?>
+                                <p><small>Aún no hay objetivos específicos para este objetivo general.</small></p>
+                            <?php else: ?>
+                                <ul class="objetivo-especifico-list">
+                                    <?php foreach ($general['especificos'] as $especifico): ?>
+                                        <li class="objetivo-especifico-item">
+                                            <span><?php echo htmlspecialchars($especifico['descripcion']); ?></span>
+                                            <form action="objetivos.php" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este objetivo específico?');">
+                                                <input type="hidden" name="id_objetivo" value="<?php echo $especifico['id']; ?>">
+                                                <button type="submit" name="delete_objetivo" class="btn btn-outline-danger btn-sm">x</button>
+                                            </form>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php endif; ?>
+
+                            <!-- Formulario para añadir Objetivo Específico -->
+                            <form action="objetivos.php" method="POST" class="form-add-especifico mt-3">
+                                <input type="hidden" name="id_padre" value="<?php echo $general['id']; ?>">
+                                <input type="text" class="form-control form-control-sm" name="descripcion_especifico" placeholder="Añadir un objetivo específico..." required>
+                                <button type="submit" name="add_especifico" class="btn btn-secondary btn-sm">Añadir</button>
+                            </form>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+             <div class="d-flex justify-content-between mt-4">
+                <a href="valores.php" class="btn btn-nav">&laquo; Anterior: Valores</a>
+                <a href="dashboard.php" class="btn btn-nav-outline">Volver al Índice</a>
+                <a href="resumen_plan.php" class="btn btn-save">Siguiente: Resumen &raquo;</a>
             </div>
         </div>
     </div>
