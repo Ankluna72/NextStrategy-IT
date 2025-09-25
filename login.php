@@ -13,6 +13,12 @@ require_once 'includes/header.php';
 $mensaje = '';
 $email = '';
 
+// Muestra el mensaje de éxito si existe
+if (isset($_SESSION['registration_success'])) {
+    $mensaje = '<div class="alert alert-success">' . $_SESSION['registration_success'] . '</div>';
+    unset($_SESSION['registration_success']);
+}
+
 $debug = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

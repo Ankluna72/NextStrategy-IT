@@ -11,6 +11,7 @@ require_once 'includes/header.php';
     </a>
     <div class="ms-auto d-flex align-items-center gap-2">
         <a href="contactos.php" class="btn btn-outline-brand">Contáctanos</a>
+        <a href="register.php" class="btn btn-outline-brand">Unirse</a>
         <a href="login.php" class="btn btn-brand">Iniciar sesión</a>
     </div>
     <button class="navbar-toggler ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarHome" aria-controls="navbarHome" aria-expanded="false" aria-label="Toggle navigation">
