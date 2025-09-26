@@ -76,8 +76,19 @@ if ($id_empresa_seleccionada) {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .navbar {
-        background-color: #0f3460 !important; /* Barra de navegación oscura */
+        background: linear-gradient(to right, #f8f9fa, #0f3460) !important;
         box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    .navbar .navbar-brand {
+        color: #16213e !important;
+        font-weight: 700;
+        text-shadow: none !important;
+    }
+    .navbar .navbar-text {
+        color: #f0f0f0 !important;
+    }
+    .navbar .navbar-text strong {
+        color: #ffffff !important;
     }
     .card {
         background-color: #16213e; /* Fondo de tarjeta más oscuro */
