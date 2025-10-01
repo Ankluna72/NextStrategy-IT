@@ -42,6 +42,21 @@ CREATE TABLE `empresa_detalle` (
   FOREIGN KEY (`id_empresa`) REFERENCES `empresa`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+--AGREGAR A LA BASE DE DATOS    
+-- Estructura de la tabla `colaboradores_empresa`
+--
+CREATE TABLE `colaboradores_empresa` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `id_empresa` INT(11) NOT NULL,
+  `id_usuario_colaborador` INT(11) NOT NULL,
+  `fecha_invitacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `estado` ENUM('activo', 'inactivo') DEFAULT 'activo',
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`id_empresa`) REFERENCES `empresa`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`id_usuario_colaborador`) REFERENCES `usuario`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  UNIQUE KEY `unique_collaboration` (`id_empresa`, `id_usuario_colaborador`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- --------------------------------------------------------
 -- Inserciones de datos de ejemplo
 -- --------------------------------------------------------
@@ -50,38 +65,38 @@ CREATE TABLE `empresa_detalle` (
 -- Inserta un usuario: Jefferson Rosas
 --
 INSERT INTO `usuario` (`id`, `tipo_user`, `nombre`, `apellido`, `email`, `password`, `pais`) VALUES
-(1, 1, 'Jefferson', 'Rosas', 'jefferson.rosas@ejemplo.com', 'hashed_password_123', 'Perú');
+(1, 1, 'Jefferson', 'Rosas', 'jefferson.rosas@ejemplo.com', 'hashed_password_123', 'Perï¿½');
 
 --
--- Inserta la información general de la empresa de Jefferson
+-- Inserta la informaciï¿½n general de la empresa de Jefferson
 --
 INSERT INTO `empresa` (`id_usuario`, `nombre_empresa`, `mision`, `vision`, `valores`, `objetivos`) VALUES
-(1, 'Tech Solutions', 'Ofrecer soluciones tecnológicas innovadoras para optimizar la gestión empresarial.', 'Ser líderes en el mercado de desarrollo de software en América Latina para 2030.', 'Innovación, Integridad, Orientación al cliente.', 'Incrementar la cuota de mercado en un 15% el próximo año y expandir operaciones a 3 nuevos países.');
+(1, 'Tech Solutions', 'Ofrecer soluciones tecnolï¿½gicas innovadoras para optimizar la gestiï¿½n empresarial.', 'Ser lï¿½deres en el mercado de desarrollo de software en Amï¿½rica Latina para 2030.', 'Innovaciï¿½n, Integridad, Orientaciï¿½n al cliente.', 'Incrementar la cuota de mercado en un 15% el prï¿½ximo aï¿½o y expandir operaciones a 3 nuevos paï¿½ses.');
 
 --
--- Inserta el análisis FODA de la empresa
+-- Inserta el anï¿½lisis FODA de la empresa
 --
 INSERT INTO `empresa_detalle` (`id_empresa`, `tipo_analisis`, `contenido`) VALUES
 (1, 'Analisis FODA', '{
   "fortalezas": [
     "Equipo de desarrollo altamente calificado.",
     "Amplia cartera de clientes leales.",
-    "Rápida adaptación a nuevas tecnologías."
+    "Rï¿½pida adaptaciï¿½n a nuevas tecnologï¿½as."
   ],
   "oportunidades": [
     "Crecimiento del mercado de soluciones SaaS.",
-    "Necesidad de digitalización en pequeñas empresas.",
-    "Subsidios gubernamentales para tecnología."
+    "Necesidad de digitalizaciï¿½n en pequeï¿½as empresas.",
+    "Subsidios gubernamentales para tecnologï¿½a."
   ],
   "debilidades": [
     "Falta de presencia en mercados internacionales.",
     "Dependencia de pocos clientes grandes.",
-    "Costo elevado de adquisición de nuevos clientes."
+    "Costo elevado de adquisiciï¿½n de nuevos clientes."
   ],
   "amenazas": [
     "Competencia de grandes empresas del sector.",
-    "Cambios rápidos en las regulaciones de datos.",
-    "Inestabilidad económica regional."
+    "Cambios rï¿½pidos en las regulaciones de datos.",
+    "Inestabilidad econï¿½mica regional."
   ]
 }');
 
@@ -91,17 +106,17 @@ INSERT INTO `empresa_detalle` (`id_empresa`, `tipo_analisis`, `contenido`) VALUE
 INSERT INTO `empresa_detalle` (`id_empresa`, `tipo_analisis`, `contenido`) VALUES
 (1, 'Cadena de Valor', '{
   "actividades_primarias": {
-    "logistica_entrada": "Procesos de adquisición de licencias de software y hardware.",
-    "operaciones": "Desarrollo y pruebas de software ágiles.",
-    "logistica_salida": "Implementación y despliegue de soluciones en la nube.",
+    "logistica_entrada": "Procesos de adquisiciï¿½n de licencias de software y hardware.",
+    "operaciones": "Desarrollo y pruebas de software ï¿½giles.",
+    "logistica_salida": "Implementaciï¿½n y despliegue de soluciones en la nube.",
     "marketing_ventas": "Marketing digital y estrategias de venta consultiva.",
-    "servicios": "Soporte técnico 24/7 y formación continua."
+    "servicios": "Soporte tï¿½cnico 24/7 y formaciï¿½n continua."
   },
   "actividades_apoyo": {
     "infraestructura": "Servidores y data centers seguros y de alto rendimiento.",
-    "recursos_humanos": "Programas de retención de talento y formación especializada.",
-    "desarrollo_tecnologico": "Investigación en Inteligencia Artificial y Machine Learning.",
-    "abastecimiento": "Negociación de contratos con proveedores de nube."
+    "recursos_humanos": "Programas de retenciï¿½n de talento y formaciï¿½n especializada.",
+    "desarrollo_tecnologico": "Investigaciï¿½n en Inteligencia Artificial y Machine Learning.",
+    "abastecimiento": "Negociaciï¿½n de contratos con proveedores de nube."
   }
 }');
 
@@ -122,7 +137,7 @@ INSERT INTO `empresa_detalle` (`id_empresa`, `tipo_analisis`, `contenido`) VALUE
       "descripcion": "Alto crecimiento y alta cuota de mercado."
     },
     {
-      "nombre": "App de Gestión de Proyectos",
+      "nombre": "App de Gestiï¿½n de Proyectos",
       "clasificacion": "Interrogante",
       "descripcion": "Alto crecimiento, pero baja cuota de mercado."
     }
@@ -130,16 +145,16 @@ INSERT INTO `empresa_detalle` (`id_empresa`, `tipo_analisis`, `contenido`) VALUE
 }');
 
 --
--- Inserta el análisis PEST de la empresa
+-- Inserta el anï¿½lisis PEST de la empresa
 --
 INSERT INTO `empresa_detalle` (`id_empresa`, `tipo_analisis`, `contenido`) VALUES
 (1, 'Analisis PEST', '{
   "politicos": [
-    "Nuevas políticas de protección de datos.",
-    "Incentivos fiscales para empresas tecnológicas."
+    "Nuevas polï¿½ticas de protecciï¿½n de datos.",
+    "Incentivos fiscales para empresas tecnolï¿½gicas."
   ],
   "economicos": [
-    "Inflación que afecta los costos operativos.",
+    "Inflaciï¿½n que afecta los costos operativos.",
     "Crecimiento del PIB regional."
   ],
   "sociales": [
@@ -147,8 +162,8 @@ INSERT INTO `empresa_detalle` (`id_empresa`, `tipo_analisis`, `contenido`) VALUE
     "Mayor conciencia sobre la ciberseguridad."
   ],
   "tecnologicos": [
-    "Avances en la computación cuántica.",
-    "Democratización de la inteligencia artificial."
+    "Avances en la computaciï¿½n cuï¿½ntica.",
+    "Democratizaciï¿½n de la inteligencia artificial."
   ]
 }');
 
@@ -159,18 +174,18 @@ INSERT INTO `empresa_detalle` (`id_empresa`, `tipo_analisis`, `contenido`) VALUE
 (1, 'Matriz CAME', '{
   "corregir_debilidades": [
     "Desarrollar una estrategia de marketing de entrada a nuevos mercados.",
-    "Implementar un CRM para fortalecer la relación con clientes existentes."
+    "Implementar un CRM para fortalecer la relaciï¿½n con clientes existentes."
   ],
   "afrontar_amenazas": [
     "Invertir en I+D para mantener la competitividad.",
     "Contratar a un experto en regulaciones de datos."
   ],
   "mantener_fortalezas": [
-    "Continuar con la formación del equipo de desarrollo.",
-    "Promocionar la marca como experta en innovación."
+    "Continuar con la formaciï¿½n del equipo de desarrollo.",
+    "Promocionar la marca como experta en innovaciï¿½n."
   ],
   "explotar_oportunidades": [
-    "Crear un nuevo producto para el mercado de pequeñas empresas.",
+    "Crear un nuevo producto para el mercado de pequeï¿½as empresas.",
     "Participar en programas de subsidios gubernamentales."
   ]
 }');

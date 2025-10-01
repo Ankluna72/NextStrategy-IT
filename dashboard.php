@@ -6,7 +6,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit();
 }
 
-$pageStyles = ['css/dashboard.css'];
+$pageStyles = ['css/dashboard.css', 'css/collaboration.css'];
 require_once 'includes/db_connection.php';
 require_once 'includes/header.php'; // Incluye Bootstrap CSS
 
@@ -21,16 +21,35 @@ if (isset($_SESSION['id_empresa_actual'])) {
     $id_empresa_seleccionada = $_SESSION['id_empresa_actual'];
 }
 
-// Obtener las empresas del usuario actual
+// Obtener las empresas del usuario actual (propias y colaborativas)
 $empresas = [];
 $stmt = $mysqli->prepare("SELECT id, nombre_empresa FROM empresa WHERE id_usuario = ?");
 $stmt->bind_param("i", $id_usuario_actual);
 $stmt->execute();
 $resultado_empresas = $stmt->get_result();
 while ($fila = $resultado_empresas->fetch_assoc()) {
+    $fila['tipo'] = 'propia';
     $empresas[] = $fila;
 }
 $stmt->close();
+
+// Obtener empresas donde el usuario es colaborador
+$stmt_colaborativas = $mysqli->prepare("
+    SELECT e.id, e.nombre_empresa, u.nombre, u.apellido 
+    FROM empresa e 
+    JOIN colaboradores_empresa c ON e.id = c.id_empresa 
+    JOIN usuario u ON e.id_usuario = u.id 
+    WHERE c.id_usuario_colaborador = ? AND c.estado = 'activo'
+");
+$stmt_colaborativas->bind_param("i", $id_usuario_actual);
+$stmt_colaborativas->execute();
+$resultado_colaborativas = $stmt_colaborativas->get_result();
+while ($fila = $resultado_colaborativas->fetch_assoc()) {
+    $fila['tipo'] = 'colaborativa';
+    $fila['propietario'] = $fila['nombre'] . ' ' . $fila['apellido'];
+    $empresas[] = $fila;
+}
+$stmt_colaborativas->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['seleccionar_empresa_id'])) {
@@ -54,17 +73,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Obtener el nombre de la empresa seleccionada (para mostrarlo)
+// Obtener el nombre de la empresa seleccionada y verificar si es propietario
 $nombre_empresa_actual = "Ninguna seleccionada";
+$es_propietario_empresa = false;
 if ($id_empresa_seleccionada) {
-    $stmt_nombre = $mysqli->prepare("SELECT nombre_empresa FROM empresa WHERE id = ?");
+    $stmt_nombre = $mysqli->prepare("SELECT nombre_empresa, id_usuario FROM empresa WHERE id = ?");
     $stmt_nombre->bind_param("i", $id_empresa_seleccionada);
     $stmt_nombre->execute();
-    $stmt_nombre->bind_result($nombre_empresa_actual_db);
+    $stmt_nombre->bind_result($nombre_empresa_actual_db, $id_propietario_empresa);
     $stmt_nombre->fetch();
     $stmt_nombre->close();
     if ($nombre_empresa_actual_db) {
         $nombre_empresa_actual = $nombre_empresa_actual_db;
+        $es_propietario_empresa = ($id_propietario_empresa == $id_usuario_actual);
     }
 }
 ?>
@@ -192,6 +213,11 @@ if ($id_empresa_seleccionada) {
             <button class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#seleccionarEmpresaModal">
                 Cambiar Proyecto
             </button>
+            <?php if ($es_propietario_empresa && $id_empresa_seleccionada): ?>
+                <a href="gestionar_colaboradores.php" class="btn-invite-collaborators me-2">
+                    <i class="fas fa-user-plus"></i> Invitar Colaboradores
+                </a>
+            <?php endif; ?>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#crearEmpresaModal">
                 <i class="fas fa-plus-circle"></i> Crear Nuevo Proyecto
             </button>
@@ -266,6 +292,9 @@ if ($id_empresa_seleccionada) {
                                     <option value="<?php echo htmlspecialchars($emp['id']); ?>"
                                         <?php echo ($emp['id'] == $id_empresa_seleccionada) ? 'selected' : ''; ?>>
                                         <?php echo htmlspecialchars($emp['nombre_empresa']); ?>
+                                        <?php if ($emp['tipo'] === 'colaborativa'): ?>
+                                            (Colaboración - <?php echo htmlspecialchars($emp['propietario']); ?>)
+                                        <?php endif; ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>

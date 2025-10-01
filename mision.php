@@ -12,9 +12,14 @@ if (!isset($_SESSION['id_empresa_actual'])) {
 
 $pageStyles = ['css/modules.css'];
 require_once 'includes/db_connection.php';
+require_once 'includes/access_control.php';
 require_once 'includes/header.php'; // Incluye Bootstrap CSS
 
+$id_usuario_actual = $_SESSION['id_usuario'];
 $id_empresa_actual = $_SESSION['id_empresa_actual'];
+
+// Verificar acceso a la empresa
+$acceso_empresa = verificar_y_redirigir_acceso($mysqli, $id_usuario_actual, $id_empresa_actual);
 $mensaje = '';
 $mision_actual = '';
 
@@ -45,6 +50,11 @@ $stmt_select->close();
     <div class="module-container">
         <div class="module-header">
             <h2 class="module-title">1. MISIÓN</h2>
+            <?php if ($acceso_empresa['es_colaborador']): ?>
+                <div class="collaboration-indicator">
+                    <i class="fas fa-users"></i> Modo Colaboración
+                </div>
+            <?php endif; ?>
         </div>
         <div class="module-content">
             <div class="row">
