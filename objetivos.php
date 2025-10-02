@@ -17,6 +17,12 @@ require_once 'includes/header.php';
 $id_empresa_actual = $_SESSION['id_empresa_actual'];
 $mensaje = '';
 
+// Manejar mensajes de la sesión (patrón PRG)
+if (isset($_SESSION['mensaje_objetivos'])) {
+    $mensaje = $_SESSION['mensaje_objetivos'];
+    unset($_SESSION['mensaje_objetivos']);
+}
+
 // Manejar la lógica de POST para añadir o eliminar objetivos
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Añadir un nuevo objetivo GENERAL
@@ -26,9 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $mysqli->prepare("INSERT INTO objetivos_estrategicos (id_empresa, descripcion, tipo) VALUES (?, ?, 'general')");
             $stmt->bind_param("is", $id_empresa_actual, $descripcion);
             if ($stmt->execute()) {
-                $mensaje = '<div class="alert alert-success">Objetivo general añadido correctamente.</div>';
+                $_SESSION['mensaje_objetivos'] = '<div class="alert alert-success alert-success-auto">Objetivo general añadido correctamente.</div>';
             } else {
-                $mensaje = '<div class="alert alert-danger">Error al añadir el objetivo general.</div>';
+                $_SESSION['mensaje_objetivos'] = '<div class="alert alert-danger">Error al añadir el objetivo general.</div>';
             }
             $stmt->close();
         }
@@ -42,9 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $mysqli->prepare("INSERT INTO objetivos_estrategicos (id_empresa, descripcion, tipo, id_padre) VALUES (?, ?, 'especifico', ?)");
             $stmt->bind_param("isi", $id_empresa_actual, $descripcion, $id_padre);
             if ($stmt->execute()) {
-                $mensaje = '<div class="alert alert-success">Objetivo específico añadido correctamente.</div>';
+                $_SESSION['mensaje_objetivos'] = '<div class="alert alert-success alert-success-auto">Objetivo específico añadido correctamente.</div>';
             } else {
-                $mensaje = '<div class="alert alert-danger">Error al añadir el objetivo específico.</div>';
+                $_SESSION['mensaje_objetivos'] = '<div class="alert alert-danger">Error al añadir el objetivo específico.</div>';
             }
             $stmt->close();
         }
@@ -58,12 +64,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $mysqli->prepare("DELETE FROM objetivos_estrategicos WHERE id = ? AND id_empresa = ?");
         $stmt->bind_param("ii", $id_objetivo, $id_empresa_actual);
         if ($stmt->execute()) {
-            $mensaje = '<div class="alert alert-info">Objetivo eliminado correctamente.</div>';
+            $_SESSION['mensaje_objetivos'] = '<div class="alert alert-info alert-success-auto">Objetivo eliminado correctamente.</div>';
         } else {
-            $mensaje = '<div class="alert alert-danger">Error al eliminar el objetivo.</div>';
+            $_SESSION['mensaje_objetivos'] = '<div class="alert alert-danger">Error al eliminar el objetivo.</div>';
         }
         $stmt->close();
     }
+    
+    // Redireccionar para evitar reenvío de POST
+    header('Location: objetivos.php');
+    exit();
 }
 
 // Obtener todos los objetivos de la empresa y organizarlos
@@ -207,6 +217,15 @@ $stmt->close();
         </div>
     </div>
 </div>
+
+<?php if (strpos($mensaje, 'alert-success') !== false || strpos($mensaje, 'alert-info') !== false): ?>
+<script>
+    // Recargar la página después de 3 segundos para mostrar cambios a otros colaboradores
+    setTimeout(function() {
+        window.location.reload();
+    }, 3000);
+</script>
+<?php endif; ?>
 
 <?php
 require_once 'includes/footer.php';

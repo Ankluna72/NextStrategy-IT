@@ -13,15 +13,23 @@ if (!isset($_SESSION['id_empresa_actual'])) {
 $pageStyles = ['css/modules.css'];
 require_once 'includes/db_connection.php';
 require_once 'includes/access_control.php';
-require_once 'includes/header.php'; // Incluye Bootstrap CSS
+require_once 'includes/header.php';
 
 $id_usuario_actual = $_SESSION['id_usuario'];
 $id_empresa_actual = $_SESSION['id_empresa_actual'];
 
 // Verificar acceso a la empresa
 $acceso_empresa = verificar_y_redirigir_acceso($mysqli, $id_usuario_actual, $id_empresa_actual);
+
+// Manejar mensajes de sesión
 $mensaje = '';
-$mision_actual = '';
+$mensaje_tipo = '';
+if (isset($_SESSION['mensaje'])) {
+    $mensaje = $_SESSION['mensaje'];
+    $mensaje_tipo = $_SESSION['mensaje_tipo'] ?? '';
+    unset($_SESSION['mensaje']);
+    unset($_SESSION['mensaje_tipo']);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['mision'])) {
@@ -29,11 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $mysqli->prepare("UPDATE empresa SET mision = ? WHERE id = ?");
         $stmt->bind_param("si", $nueva_mision, $id_empresa_actual);
         if ($stmt->execute()) {
-            $mensaje = '<div class="alert alert-success">Misión guardada correctamente.</div>';
+            $_SESSION['mensaje'] = '<div class="alert alert-success alert-success-auto">Misión guardada correctamente.</div>';
+            $_SESSION['mensaje_tipo'] = 'success';
         } else {
-            $mensaje = '<div class="alert alert-danger">Error al guardar la misión.</div>';
+            $_SESSION['mensaje'] = '<div class="alert alert-danger">Error al guardar la misión.</div>';
+            $_SESSION['mensaje_tipo'] = 'error';
         }
         $stmt->close();
+        
+        // Redirigir para evitar resubmisión
+        header('Location: mision.php');
+        exit();
     }
 }
 
@@ -42,7 +56,7 @@ $stmt_select->bind_param("i", $id_empresa_actual);
 $stmt_select->execute();
 $stmt_select->bind_result($mision_actual_db);
 $stmt_select->fetch();
-$mision_actual = $mision_actual_db ?? ''; // Asigna el valor o un string vacío si es null
+$mision_actual = $mision_actual_db ?? '';
 $stmt_select->close();
 
 ?>
@@ -104,6 +118,15 @@ $stmt_select->close();
         </div>
     </div>
 </div>
+
+<?php if ($mensaje_tipo === 'success'): ?>
+<script>
+// Recargar la página después de 3 segundos para sincronizar con colaboradores
+setTimeout(function() {
+    window.location.reload();
+}, 3000);
+</script>
+<?php endif; ?>
 
 <?php
 require_once 'includes/footer.php';

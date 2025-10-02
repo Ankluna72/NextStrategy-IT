@@ -25,25 +25,172 @@
 
 /* Botón de invitar colaboradores */
 .btn-invite-collaborators {
-    background: linear-gradient(45deg, #e94560, #ff6a80);
-    border: none;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: 600;
+    background: linear-gradient(45deg, #28a745, #20c997) !important;
+    border: none !important;
+    color: white !important;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.5px;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(233, 69, 96, 0.3);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    line-height: 1.4;
+    height: 38px;
+    min-width: 160px;
+    white-space: nowrap;
+    text-align: center;
 }
 
 .btn-invite-collaborators:hover {
-    background: linear-gradient(45deg, #ff6a80, #e94560);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
-    color: white;
+    background: linear-gradient(45deg, #20c997, #28a745) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+    color: white !important;
+    text-decoration: none !important;
 }
 
 .btn-invite-collaborators:focus {
-    box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.3);
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.3);
+    color: white !important;
+    text-decoration: none !important;
+    outline: none;
+}
+
+.btn-invite-collaborators:visited {
+    color: white !important;
+    text-decoration: none !important;
+}
+
+.btn-invite-collaborators:active {
+    color: white !important;
+    text-decoration: none !important;
+    transform: translateY(0px);
+}
+
+/* Asegurar que el ícono y texto sean blancos y estén bien espaciados */
+.btn-invite-collaborators i {
+    color: white !important;
+    margin-right: 8px;
+    font-size: 14px;
+}
+
+.btn-invite-collaborators * {
+    color: white !important;
+}
+
+/* Estilos mejorados para el botón "Cambiar Proyecto" */
+.sticky-top-actions .btn-outline-light {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    min-width: 140px;
+    white-space: nowrap;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+.sticky-top-actions .btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: white !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+.sticky-top-actions .btn-outline-light:focus {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: white !important;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+    outline: none;
+}
+
+/* Estilos mejorados para el botón "Crear Nuevo Proyecto" */
+.sticky-top-actions .btn-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3) !important;
+    border: none !important;
+    color: white !important;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    min-width: 160px;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.sticky-top-actions .btn-primary:hover {
+    background: linear-gradient(45deg, #0056b3, #007bff) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+    color: white !important;
+}
+
+.sticky-top-actions .btn-primary:focus {
+    background: linear-gradient(45deg, #0056b3, #007bff) !important;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+    color: white !important;
+    outline: none;
+}
+
+.sticky-top-actions .btn-primary:active {
+    transform: translateY(0px);
+    color: white !important;
+}
+
+/* Espaciado del ícono en el botón "Crear Nuevo Proyecto" */
+.sticky-top-actions .btn-primary i {
+    margin-right: 8px;
+    font-size: 14px;
+}
+
+/* Alineación de botones en el dashboard */
+.sticky-top-actions .col-md-6:last-child {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Asegurar que todos los botones tengan la misma altura */
+.sticky-top-actions .btn,
+.sticky-top-actions .btn-invite-collaborators {
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sticky-top-actions .col-md-6:last-child > * {
+    margin: 0 !important;
+    vertical-align: middle;
+    display: inline-flex;
+    align-items: center;
+    height: 38px;
+    line-height: 1.5;
 }
 
 /* Lista de colaboradores */
@@ -132,6 +279,12 @@
     margin: 15px 0;
 }
 
+.invite-form h5 {
+    color: #ffffff !important;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
 .invite-form .form-label {
     color: #ffffff;
     font-weight: 600;
@@ -155,6 +308,10 @@
 
 .invite-form .form-control::placeholder {
     color: #a4d6ff;
+}
+
+.invite-form .form-text {
+    color: rgba(255, 255, 255, 0.7) !important;
 }
 
 /* Botón de enviar invitación */
@@ -230,6 +387,16 @@
     border-radius: 8px;
     padding: 15px;
     margin: 15px 0;
+}
+
+.collaborative-enterprises h5 {
+    color: #ffffff !important;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.collaborative-enterprises .text-muted {
+    color: rgba(255, 255, 255, 0.6) !important;
 }
 
 .collaborative-enterprise-item {

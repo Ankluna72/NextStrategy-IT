@@ -210,14 +210,14 @@ if ($id_empresa_seleccionada) {
             <h4 class="mb-0 text-white-50">Empresa Actual: <span class="company-current"><?php echo htmlspecialchars($nombre_empresa_actual); ?></span></h4>
         </div>
         <div class="col-md-6 text-end">
-            <button class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#seleccionarEmpresaModal">
-                Cambiar Proyecto
-            </button>
             <?php if ($es_propietario_empresa && $id_empresa_seleccionada): ?>
                 <a href="gestionar_colaboradores.php" class="btn-invite-collaborators me-2">
                     <i class="fas fa-user-plus"></i> Invitar Colaboradores
                 </a>
             <?php endif; ?>
+            <button class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#seleccionarEmpresaModal">
+                Cambiar Proyecto
+            </button>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#crearEmpresaModal">
                 <i class="fas fa-plus-circle"></i> Crear Nuevo Proyecto
             </button>
@@ -225,6 +225,51 @@ if ($id_empresa_seleccionada) {
     </div>
 
     <h2 class="text-white-50 mb-3">INFORMACIÓN DE LA EMPRESA</h2>
+    
+    <!-- Sección de imagen de la empresa -->
+    <?php if ($es_propietario_empresa && $id_empresa_seleccionada): ?>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="empresa-image-section">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="text-white mb-2">
+                            <i class="fas fa-image me-2"></i>Logo/Imagen de la Empresa
+                        </h5>
+                        <p class="text-white-50 mb-0">Sube una imagen representativa de tu empresa para el plan ejecutivo</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#uploadImageModal">
+                            <i class="fas fa-upload me-2"></i>Subir Imagen
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Mostrar imagen actual si existe -->
+                <?php 
+                $stmt_img = $mysqli->prepare("SELECT imagen FROM empresa WHERE id = ?");
+                $stmt_img->bind_param("i", $id_empresa_seleccionada);
+                $stmt_img->execute();
+                $stmt_img->bind_result($imagen_actual);
+                $stmt_img->fetch();
+                $stmt_img->close();
+                
+                if (!empty($imagen_actual)): ?>
+                <div class="current-image-preview mt-3">
+                    <img src="uploads/empresa_images/<?php echo htmlspecialchars($imagen_actual); ?>" 
+                         alt="Imagen actual" class="current-empresa-image">
+                    <div class="image-actions mt-2">
+                        <button class="btn btn-danger btn-sm" onclick="deleteImage()">
+                            <i class="fas fa-trash me-1"></i>Eliminar
+                        </button>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+    
     <div class="row g-4 mb-5">
         <div class="col-md-3">
             <a href="mision.php" class="module-button">1. MISIÓN</a>
@@ -331,3 +376,113 @@ if ($id_empresa_seleccionada) {
 require_once 'includes/footer.php'; 
 $mysqli->close();
 ?>
+
+<!-- Modal para subir imagen -->
+<div class="modal fade" id="uploadImageModal" tabindex="-1" aria-labelledby="uploadImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadImageModalLabel">
+                    <i class="fas fa-image me-2"></i>Subir Imagen de la Empresa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="uploadImageForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="empresa_image" class="form-label">Seleccionar imagen</label>
+                        <input type="file" class="form-control" id="empresa_image" name="empresa_image" 
+                               accept="image/*" required>
+                        <div class="form-text text-white-50">
+                            Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB
+                        </div>
+                    </div>
+                    
+                    <!-- Preview de la imagen -->
+                    <div id="imagePreview" class="mt-3" style="display: none;">
+                        <img id="previewImg" src="" alt="Preview" class="img-preview">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>Subir Imagen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Preview de imagen
+document.getElementById('empresa_image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Subir imagen
+document.getElementById('uploadImageForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    const fileInput = document.getElementById('empresa_image');
+    
+    if (fileInput.files.length === 0) {
+        alert('Por favor selecciona una imagen');
+        return;
+    }
+    
+    formData.append('empresa_image', fileInput.files[0]);
+    formData.append('id_empresa', <?php echo $id_empresa_seleccionada ?? 0; ?>);
+    
+    fetch('upload_empresa_image.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Imagen subida correctamente');
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al subir la imagen');
+    });
+});
+
+// Eliminar imagen
+function deleteImage() {
+    if (confirm('¿Estás seguro de que quieres eliminar la imagen?')) {
+        fetch('delete_empresa_image.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id_empresa: <?php echo $id_empresa_seleccionada ?? 0; ?>
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Imagen eliminada correctamente');
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+}
+</script>

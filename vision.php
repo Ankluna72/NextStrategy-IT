@@ -6,17 +6,25 @@ if (!isset($_SESSION['id_usuario'])) {
     exit();
 }
 if (!isset($_SESSION['id_empresa_actual'])) {
-    header('Location: dashboard.php'); // Si no hay empresa, al dashboard para seleccionarla
+    header('Location: dashboard.php');
     exit();
 }
 
 $pageStyles = ['css/modules.css'];
 require_once 'includes/db_connection.php';
-require_once 'includes/header.php'; // Incluye Bootstrap CSS
+require_once 'includes/header.php';
 
 $id_empresa_actual = $_SESSION['id_empresa_actual'];
+
+// Manejar mensajes de sesión
 $mensaje = '';
-$vision_actual = '';
+$mensaje_tipo = '';
+if (isset($_SESSION['mensaje'])) {
+    $mensaje = $_SESSION['mensaje'];
+    $mensaje_tipo = $_SESSION['mensaje_tipo'] ?? '';
+    unset($_SESSION['mensaje']);
+    unset($_SESSION['mensaje_tipo']);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['vision'])) {
@@ -24,11 +32,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $mysqli->prepare("UPDATE empresa SET vision = ? WHERE id = ?");
         $stmt->bind_param("si", $nueva_vision, $id_empresa_actual);
         if ($stmt->execute()) {
-            $mensaje = '<div class="alert alert-success">Visión guardada correctamente.</div>';
+            $_SESSION['mensaje'] = '<div class="alert alert-success alert-success-auto">Visión guardada correctamente.</div>';
+            $_SESSION['mensaje_tipo'] = 'success';
         } else {
-            $mensaje = '<div class="alert alert-danger">Error al guardar la visión.</div>';
+            $_SESSION['mensaje'] = '<div class="alert alert-danger">Error al guardar la visión.</div>';
+            $_SESSION['mensaje_tipo'] = 'error';
         }
         $stmt->close();
+        
+        // Redirigir para evitar resubmisión
+        header('Location: vision.php');
+        exit();
     }
 }
 
@@ -63,7 +77,7 @@ $stmt_select->close();
                         <div class="examples-body">
                             <p><strong>Empresa de servicios:</strong><br><small>Ser el grupo empresarial de referencia en nuestras áreas de actividad.</small></p>
                             <hr>
-                            <p><strong>Empresa productora de café:</strong><br><small>Queremos ser en el mundo el punto de referencia de la cultura y de la excelencia del café. Una empresa innovadora que propone los mejores productos y lugares de consumo y que, gracias a ello, crece y se convierte en líder de la alta gama.</small></p>
+                            <p><strong>Empresa productora de café:</strong><br><small>Queremos ser en el mundo el punto de referencia de la cultura y de la excelencia del café. Una empresa innovadora que propone los mejores productos y lugares de consumo y que, gracias a ello, crece y se convierte...</small></p>
                         </div>
                     </div>
                 </div>
@@ -95,6 +109,15 @@ $stmt_select->close();
         </div>
     </div>
 </div>
+
+<?php if ($mensaje_tipo === 'success'): ?>
+<script>
+// Recargar la página después de 3 segundos para sincronizar con colaboradores
+setTimeout(function() {
+    window.location.reload();
+}, 3000);
+</script>
+<?php endif; ?>
 
 <?php
 require_once 'includes/footer.php';

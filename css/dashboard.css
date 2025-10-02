@@ -177,3 +177,70 @@ h2.text-white-50 {
     border-color: var(--brand-green);
     box-shadow: 0 0 0 0.2rem rgba(24,179,107,.25);
 }
+
+/* Estilos para la sección de imagen de empresa */
+.empresa-image-section {
+    background: linear-gradient(135deg, var(--brand-green), var(--brand-green-600));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(24, 179, 107, 0.3);
+}
+
+.empresa-image-section h5 {
+    color: white !important;
+    font-weight: 600;
+}
+
+.empresa-image-section p {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.current-empresa-image {
+    max-width: 200px;
+    max-height: 120px;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.current-image-preview {
+    text-align: center;
+}
+
+.image-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Mejorar el botón de subir imagen */
+.empresa-image-section .btn-outline-light {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.empresa-image-section .btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+/* Estilos para el modal de imagen */
+.img-preview {
+    max-width: 100%;
+    max-height: 200px;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}

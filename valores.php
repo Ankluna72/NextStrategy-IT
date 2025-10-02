@@ -18,17 +18,27 @@ $id_empresa_actual = $_SESSION['id_empresa_actual'];
 $mensaje = '';
 $valores_actuales = '';
 
+// Manejar mensajes de la sesión (patrón PRG)
+if (isset($_SESSION['mensaje_valores'])) {
+    $mensaje = $_SESSION['mensaje_valores'];
+    unset($_SESSION['mensaje_valores']);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['valores'])) {
         $nuevos_valores = $_POST['valores'];
         $stmt = $mysqli->prepare("UPDATE empresa SET valores = ? WHERE id = ?");
         $stmt->bind_param("si", $nuevos_valores, $id_empresa_actual);
         if ($stmt->execute()) {
-            $mensaje = '<div class="alert alert-success">Valores guardados correctamente.</div>';
+            $_SESSION['mensaje_valores'] = '<div class="alert alert-success alert-success-auto">Valores guardados correctamente.</div>';
         } else {
-            $mensaje = '<div class="alert alert-danger">Error al guardar los valores.</div>';
+            $_SESSION['mensaje_valores'] = '<div class="alert alert-danger">Error al guardar los valores.</div>';
         }
         $stmt->close();
+        
+        // Redireccionar para evitar reenvío de POST
+        header('Location: valores.php');
+        exit();
     }
 }
 
@@ -97,6 +107,15 @@ $stmt_select->close();
         </div>
     </div>
 </div>
+
+<?php if (strpos($mensaje, 'alert-success') !== false): ?>
+<script>
+    // Recargar la página después de 3 segundos para mostrar cambios a otros colaboradores
+    setTimeout(function() {
+        window.location.reload();
+    }, 3000);
+</script>
+<?php endif; ?>
 
 <?php
 require_once 'includes/footer.php';

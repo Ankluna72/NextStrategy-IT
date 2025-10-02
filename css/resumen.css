@@ -218,3 +218,27 @@ body { background: linear-gradient(180deg, #f5faff 0%, #eef6fb 100%); }
 .objetivo-row-item:nth-child(even) .general-cell { background-color: #fcf6e9; }
 .objetivo-row-item:nth-child(even) .especificos-cell { background-color: #f1f9f4; }
 
+/* Estilos para la imagen de la empresa */
+.empresa-imagen-container {
+    text-align: center;
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.empresa-imagen {
+    max-width: 300px;
+    max-height: 200px;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.empresa-imagen:hover {
+    transform: scale(1.05);
+}
+

@@ -16,8 +16,8 @@ require_once 'includes/header.php';
 
 $id_empresa_actual = $_SESSION['id_empresa_actual'];
 
-// 1. Obtener datos de la empresa (Misión, Visión, etc.)
-$stmt_empresa = $mysqli->prepare("SELECT nombre_empresa, mision, vision, valores FROM empresa WHERE id = ?");
+// 1. Obtener datos de la empresa (Misión, Visión, etc.) incluyendo imagen
+$stmt_empresa = $mysqli->prepare("SELECT nombre_empresa, mision, vision, valores, imagen FROM empresa WHERE id = ?");
 $stmt_empresa->bind_param("i", $id_empresa_actual);
 $stmt_empresa->execute();
 $empresa_data = $stmt_empresa->get_result()->fetch_assoc();
@@ -58,6 +58,15 @@ $stmt_objetivos->close();
             <h1 class="resumen-title">Resumen del Plan Ejecutivo</h1>
             <h2 class="empresa-title"><?php echo htmlspecialchars($empresa_data['nombre_empresa']); ?></h2>
         </div>
+        
+        <!-- Imagen de la empresa -->
+        <?php if (!empty($empresa_data['imagen'])): ?>
+        <div class="empresa-imagen-container">
+            <img src="uploads/empresa_images/<?php echo htmlspecialchars($empresa_data['imagen']); ?>" 
+                 alt="Logo de <?php echo htmlspecialchars($empresa_data['nombre_empresa']); ?>" 
+                 class="empresa-imagen">
+        </div>
+        <?php endif; ?>
         
         <div class="resumen-content">
             
