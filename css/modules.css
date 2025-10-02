@@ -201,6 +201,16 @@ body { background: linear-gradient(180deg, #f5faff 0%, #eef6fb 100%); }
     box-shadow: 0 4px 15px rgba(0,0,0,.05);
 }
 
+/* FODA styles */
+.card-title.fortaleza { color: #198754; }
+.card-title.oportunidad { color: #0dcaf0; }
+.card-title.debilidad { color: #e94560; }
+.card-title.amenaza { color: #dc3545; }
+.list-group-item.fortaleza { border-left: 4px solid #198754; }
+.list-group-item.oportunidad { border-left: 4px solid #0dcaf0; }
+.list-group-item.debilidad { border-left: 4px solid #e94560; }
+.list-group-item.amenaza { border-left: 4px solid #dc3545; }
+
 .table-module th {
     background: var(--brand-green);
     color: white;

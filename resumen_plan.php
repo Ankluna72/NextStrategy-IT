@@ -146,10 +146,68 @@ $stmt_objetivos->close();
             </div>
         </div>
         
+        <!-- FODA -->
+        <div class="resumen-section mt-5">
+            <h3 class="section-title" style="margin-left:32px;">Análisis FODA</h3>
+            <?php
+            // Obtener FODA
+            $stmt_foda = $mysqli->prepare("SELECT tipo, descripcion FROM foda WHERE id_empresa = ? ORDER BY tipo, id ASC");
+            $stmt_foda->bind_param("i", $id_empresa_actual);
+            $stmt_foda->execute();
+            $result_foda = $stmt_foda->get_result();
+            $foda_data = [
+                'debilidad' => [],
+                'amenaza' => [],
+                'fortaleza' => [],
+                'oportunidad' => []
+            ];
+            while ($row = $result_foda->fetch_assoc()) {
+                $foda_data[$row['tipo']][] = $row['descripcion'];
+            }
+            $stmt_foda->close();
+            ?>
+            <div class="foda-matriz" style="max-width:900px;margin:auto;">
+                <div style="background:#1565c0;color:#fff;padding:8px 32px;font-weight:700;font-size:1.2rem;">ANÁLISIS FODA</div>
+                <div style="display:grid;grid-template-rows:repeat(4,1fr);border:1px solid #e0e0e0;">
+                    <div style="background:#e8f5e9;border-bottom:1px dotted #bbb;padding:12px 16px;">
+                        <strong>DEBILIDADES</strong>
+                        <ul style="margin:8px 0 0 0;padding-left:18px;">
+                            <?php foreach($foda_data['debilidad'] as $item): ?>
+                                <li><?php echo htmlspecialchars($item); ?></li>
+                            <?php endforeach; if(empty($foda_data['debilidad'])): ?><li class="text-muted">Sin registros</li><?php endif; ?>
+                        </ul>
+                    </div>
+                    <div style="background:#e3f2fd;border-bottom:1px dotted #bbb;padding:12px 16px;">
+                        <strong>AMENAZAS</strong>
+                        <ul style="margin:8px 0 0 0;padding-left:18px;">
+                            <?php foreach($foda_data['amenaza'] as $item): ?>
+                                <li><?php echo htmlspecialchars($item); ?></li>
+                            <?php endforeach; if(empty($foda_data['amenaza'])): ?><li class="text-muted">Sin registros</li><?php endif; ?>
+                        </ul>
+                    </div>
+                    <div style="background:#fffde7;border-bottom:1px dotted #bbb;padding:12px 16px;">
+                        <strong>FORTALEZAS</strong>
+                        <ul style="margin:8px 0 0 0;padding-left:18px;">
+                            <?php foreach($foda_data['fortaleza'] as $item): ?>
+                                <li><?php echo htmlspecialchars($item); ?></li>
+                            <?php endforeach; if(empty($foda_data['fortaleza'])): ?><li class="text-muted">Sin registros</li><?php endif; ?>
+                        </ul>
+                    </div>
+                    <div style="background:#ffe0b2;padding:12px 16px;">
+                        <strong>OPORTUNIDADES</strong>
+                        <ul style="margin:8px 0 0 0;padding-left:18px;">
+                            <?php foreach($foda_data['oportunidad'] as $item): ?>
+                                <li><?php echo htmlspecialchars($item); ?></li>
+                            <?php endforeach; if(empty($foda_data['oportunidad'])): ?><li class="text-muted">Sin registros</li><?php endif; ?>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Navegación -->
         <div class="resumen-navigation">
             <a href="dashboard.php" class="btn btn-nav"><i class="fas fa-home"></i> Ir al Inicio</a>
-            <a href="objetivos.php" class="btn btn-save"><i class="fas fa-edit"></i> Editar Objetivos</a>
+            <a href="foda.php" class="btn btn-save"><i class="fas fa-edit"></i> Editar FODA</a>
         </div>
     </div>
 </div>
