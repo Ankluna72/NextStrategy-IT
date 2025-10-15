@@ -169,9 +169,9 @@ $stmt->close();
             </div>
         </div>
         <div class="d-flex justify-content-between mt-4" style="max-width:900px;margin:auto;">
-            <a href="objetivos.php" class="btn btn-nav">&laquo; Atrás: Objetivos</a>
+            <a href="analisis_info.php" class="btn btn-nav">&laquo; Atrás: Info. Análisis</a>
             <a href="dashboard.php" class="btn btn-nav">Volver al Índice</a>
-            <a href="resumen_plan.php" class="btn btn-save">Ir al Resumen Ejecutivo &raquo;</a>
+            <a href="cadena_valor.php" class="btn btn-save">Siguiente: Realizar Análisis FODA &raquo;</a>
         </div>
     </div>
 </div>

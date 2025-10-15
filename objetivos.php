@@ -212,7 +212,7 @@ $stmt->close();
              <div class="d-flex justify-content-between mt-4">
                 <a href="valores.php" class="btn btn-nav">&laquo; Anterior: Valores</a>
                 <a href="dashboard.php" class="btn btn-nav-outline">Volver al Índice</a>
-                <a href="foda.php" class="btn btn-save">Siguiente: Análisis Interno y Externo &raquo;</a>
+                <a href="analisis_info.php" class="btn btn-save">Siguiente: Análisis Interno y Externo &raquo;</a>
             </div>
         </div>
     </div>
