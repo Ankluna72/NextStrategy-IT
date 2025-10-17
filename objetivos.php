@@ -23,7 +23,7 @@ if (isset($_SESSION['mensaje_objetivos'])) {
     unset($_SESSION['mensaje_objetivos']);
 }
 
-// Manejar la lógica de POST para añadir o eliminar objetivos
+// Manejar la lógica de POST para añadir, eliminar o actualizar objetivos
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Añadir un nuevo objetivo GENERAL
     if (isset($_POST['add_general'])) {
@@ -59,8 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Eliminar un objetivo
     if (isset($_POST['delete_objetivo'])) {
         $id_objetivo = $_POST['id_objetivo'];
-        // Opcional: Para evitar que se eliminen objetivos generales con hijos, primero verificar.
-        // En este caso, la BD se encarga por ON DELETE CASCADE, eliminando hijos automáticamente.
         $stmt = $mysqli->prepare("DELETE FROM objetivos_estrategicos WHERE id = ? AND id_empresa = ?");
         $stmt->bind_param("ii", $id_objetivo, $id_empresa_actual);
         if ($stmt->execute()) {
@@ -69,6 +67,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['mensaje_objetivos'] = '<div class="alert alert-danger">Error al eliminar el objetivo.</div>';
         }
         $stmt->close();
+    }
+
+    // Actualizar un objetivo
+    if (isset($_POST['update_objetivo'])) {
+        $id_objetivo = $_POST['id_objetivo'];
+        $descripcion = trim($_POST['descripcion']);
+        if (!empty($descripcion)) {
+            $stmt = $mysqli->prepare("UPDATE objetivos_estrategicos SET descripcion = ? WHERE id = ? AND id_empresa = ?");
+            $stmt->bind_param("sii", $descripcion, $id_objetivo, $id_empresa_actual);
+            if ($stmt->execute()) {
+                $_SESSION['mensaje_objetivos'] = '<div class="alert alert-success alert-success-auto">Objetivo actualizado correctamente.</div>';
+            } else {
+                $_SESSION['mensaje_objetivos'] = '<div class="alert alert-danger">Error al actualizar el objetivo.</div>';
+            }
+            $stmt->close();
+        }
     }
     
     // Redireccionar para evitar reenvío de POST
@@ -141,6 +155,9 @@ $stmt->close();
         gap: 10px;
         margin-top: 1rem;
     }
+    .objetivo-actions > * {
+        margin: 0 2px;
+    }
 </style>
 
 <div class="container mt-4">
@@ -175,11 +192,16 @@ $stmt->close();
                     <?php foreach ($objetivos_generales as $general): ?>
                         <div class="objetivo-general-card">
                             <div class="objetivo-general-header">
-                                <h5 class="objetivo-general-title"><?php echo htmlspecialchars($general['descripcion']); ?></h5>
-                                <form action="objetivos.php" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este objetivo general y todos sus objetivos específicos asociados?');">
-                                    <input type="hidden" name="id_objetivo" value="<?php echo $general['id']; ?>">
-                                    <button type="submit" name="delete_objetivo" class="btn btn-danger btn-sm">Eliminar</button>
-                                </form>
+                                <div class="objetivo-descripcion" id="descripcion-general-<?php echo $general['id']; ?>">
+                                    <h5 class="objetivo-general-title"><?php echo htmlspecialchars($general['descripcion']); ?></h5>
+                                </div>
+                                <div class="objetivo-actions">
+                                    <button class="btn btn-sm btn-outline-primary btn-edit" data-id="<?php echo $general['id']; ?>" data-tipo="general"><i class="fas fa-edit"></i></button>
+                                    <form action="objetivos.php" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este objetivo general y todos sus objetivos específicos asociados?');" style="display: inline;">
+                                        <input type="hidden" name="id_objetivo" value="<?php echo $general['id']; ?>">
+                                        <button type="submit" name="delete_objetivo" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                </div>
                             </div>
                             
                             <h6>Objetivos Específicos:</h6>
@@ -187,17 +209,20 @@ $stmt->close();
                                 <p><small>Aún no hay objetivos específicos para este objetivo general.</small></p>
                             <?php else: ?>
                                 <ul class="objetivo-especifico-list">
-                                    <?php foreach ($general['especificos'] as $especifico): ?>
-                                        <li class="objetivo-especifico-item">
-                                            <span><?php echo htmlspecialchars($especifico['descripcion']); ?></span>
-                                            <form action="objetivos.php" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este objetivo específico?');">
-                                                <input type="hidden" name="id_objetivo" value="<?php echo $especifico['id']; ?>">
-                                                <button type="submit" name="delete_objetivo" class="btn btn-outline-danger btn-sm">x</button>
-                                            </form>
-                                        </li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            <?php endif; ?>
+                                    <?php foreach ($general['especificos'] as $especifico):
+                                        echo '<li class="objetivo-especifico-item">';
+                                        echo '<span class="objetivo-descripcion" id="descripcion-especifico-'. $especifico['id'] .'">'. htmlspecialchars($especifico['descripcion']) .'</span>';
+                                        echo '<div class="objetivo-actions">';
+                                        echo '<button class="btn btn-sm btn-outline-primary btn-edit" data-id="'. $especifico['id'] .'" data-tipo="especifico"><i class="fas fa-edit"></i></button>';
+                                        echo '<form action="objetivos.php" method="POST" onsubmit="return confirm(\'¿Estás seguro de que deseas eliminar este objetivo específico?\');" style="display: inline;">';
+                                        echo '<input type="hidden" name="id_objetivo" value="'. $especifico['id'] .'">';
+                                        echo '<button type="submit" name="delete_objetivo" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash"></i></button>';
+                                        echo '</form>';
+                                        echo '</div>';
+                                        echo '</li>';
+                                    endforeach;
+                                echo '</ul>';
+                            endif; ?>
 
                             <!-- Formulario para añadir Objetivo Específico -->
                             <form action="objetivos.php" method="POST" class="form-add-especifico mt-3">
@@ -217,6 +242,67 @@ $stmt->close();
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const editButtons = document.querySelectorAll('.btn-edit');
+
+    editButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const tipo = this.dataset.tipo;
+            const descripcionElement = document.getElementById(`descripcion-${tipo}-${id}`);
+            const currentDescription = descripcionElement.innerText;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'form-control';
+            input.value = currentDescription;
+
+            const saveButton = document.createElement('button');
+            saveButton.className = 'btn btn-sm btn-outline-success';
+            saveButton.innerHTML = '<i class="fas fa-save"></i>';
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'objetivos.php';
+            form.style.display = 'inline';
+
+            const hiddenId = document.createElement('input');
+            hiddenId.type = 'hidden';
+            hiddenId.name = 'id_objetivo';
+            hiddenId.value = id;
+
+            const hiddenDesc = document.createElement('input');
+            hiddenDesc.type = 'hidden';
+            hiddenDesc.name = 'descripcion';
+
+            const hiddenUpdate = document.createElement('input');
+            hiddenUpdate.type = 'hidden';
+            hiddenUpdate.name = 'update_objetivo';
+            hiddenUpdate.value = '1';
+
+            form.appendChild(hiddenId);
+            form.appendChild(hiddenDesc);
+            form.appendChild(hiddenUpdate);
+            form.appendChild(saveButton);
+
+            descripcionElement.innerHTML = '';
+            descripcionElement.appendChild(input);
+            
+            const actionsContainer = this.parentElement;
+            actionsContainer.innerHTML = '';
+            actionsContainer.appendChild(form);
+
+            saveButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                hiddenDesc.value = input.value;
+                form.submit();
+            });
+        });
+    });
+});
+</script>
 
 <?php if (strpos($mensaje, 'alert-success') !== false || strpos($mensaje, 'alert-info') !== false): ?>
 <script>

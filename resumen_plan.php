@@ -207,7 +207,7 @@ $stmt_objetivos->close();
         <!-- Navegación -->
         <div class="resumen-navigation">
             <a href="dashboard.php" class="btn btn-nav"><i class="fas fa-home"></i> Ir al Inicio</a>
-            <a href="foda.php" class="btn btn-save"><i class="fas fa-edit"></i> Editar FODA</a>
+            <a href="cavalor.php" class="btn btn-save"><i class="fas fa-edit"></i> Editar FODA</a>
         </div>
     </div>
 </div>

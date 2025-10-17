@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'includes/db_connection.php';
+$pageStyles = ['css/modules.css'];
 require_once 'includes/header.php';
 
 if (!isset($_SESSION['id_usuario'])) {
@@ -24,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tipo'], $_POST['descr
         $stmt->bind_param("iss", $id_empresa_actual, $tipo, $descripcion);
         $stmt->execute();
         $stmt->close();
-        header('Location: foda.php');
+        header('Location: cavalor.php');
         exit();
     }
 }
@@ -36,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id']) && is_nu
     $stmt->bind_param("ii", $delete_id, $id_empresa_actual);
     $stmt->execute();
     $stmt->close();
-    header('Location: foda.php');
+    header('Location: cavalor.php');
     exit();
 }
 
@@ -170,8 +171,8 @@ $stmt->close();
         </div>
         <div class="d-flex justify-content-between mt-4" style="max-width:900px;margin:auto;">
             <a href="analisis_info.php" class="btn btn-nav">&laquo; Atrás: Info. Análisis</a>
-            <a href="dashboard.php" class="btn btn-nav">Volver al Índice</a>
-            <a href="cadena_valor.php" class="btn btn-save">Siguiente: Realizar Análisis FODA &raquo;</a>
+            <a href="dashboard.php" class="btn btn-nav-outline">Volver al Índice</a>
+            <a href="cadena_valor.php" class="btn btn-save">Siguiente: Cadena de Valor &raquo;</a>
         </div>
     </div>
 </div>

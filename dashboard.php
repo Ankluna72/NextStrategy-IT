@@ -288,7 +288,7 @@ if ($id_empresa_seleccionada) {
     <h2 class="text-white-50 mb-3">ANÁLISIS ESTRATÉGICO</h2>
     <div class="row g-4 mb-5">
         <div class="col-md-4">
-            <a href="foda.php" class="module-button">5. ANÁLISIS INTERNO Y EXTERNO (FODA)</a>
+            <a href="analisis_info.php" class="module-button">5. ANÁLISIS INTERNO Y EXTERNO (FODA)</a>
         </div>
         <div class="col-md-4">
             <a href="cadena_valor.php" class="module-button">6. CADENA DE VALOR</a>
@@ -309,7 +309,7 @@ if ($id_empresa_seleccionada) {
             <a href="matriz_came.php" class="module-button">11. MATRIZ CAME</a>
         </div>
             <div class="col-md-4">
-                <a href="foda.php" class="module-button">5. ANÁLISIS FODA</a>
+                <a href="cavalor.php" class="module-button">5. ANÁLISIS FODA</a>
             </div>
     </div>
 
