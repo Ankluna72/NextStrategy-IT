@@ -308,9 +308,6 @@ if ($id_empresa_seleccionada) {
         <div class="col-md-4">
             <a href="matriz_came.php" class="module-button">11. MATRIZ CAME</a>
         </div>
-            <div class="col-md-4">
-                <a href="cavalor.php" class="module-button">5. ANÁLISIS FODA</a>
-            </div>
     </div>
 
     <h2 class="text-white-50 mb-3">PLAN EJECUTIVO</h2>

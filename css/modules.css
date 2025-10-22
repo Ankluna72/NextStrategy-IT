@@ -609,3 +609,99 @@ p {
 .tabla-bcg tr:nth-child(even) {
     background-color: #f2f2f2;
 }
+
+/* ======== COLORES DISTINTIVOS PARA PRODUCTOS BCG ======== */
+:root {
+    --producto-1: #18b36b;  /* Verde principal */
+    --producto-1-light: rgba(24,179,107,.15);
+    --producto-1-bg: linear-gradient(135deg, rgba(24,179,107,.1), rgba(24,179,107,.2));
+    
+    --producto-2: #0f2f46;  /* Azul oscuro */
+    --producto-2-light: rgba(15,47,70,.15);
+    --producto-2-bg: linear-gradient(135deg, rgba(15,47,70,.1), rgba(15,47,70,.2));
+    
+    --producto-3: #e74c3c;  /* Rojo coral */
+    --producto-3-light: rgba(231,76,60,.15);
+    --producto-3-bg: linear-gradient(135deg, rgba(231,76,60,.1), rgba(231,76,60,.2));
+    
+    --producto-4: #f39c12;  /* Naranja */
+    --producto-4-light: rgba(243,156,18,.15);
+    --producto-4-bg: linear-gradient(135deg, rgba(243,156,18,.1), rgba(243,156,18,.2));
+    
+    --producto-5: #9b59b6;  /* Púrpura */
+    --producto-5-light: rgba(155,89,182,.15);
+    --producto-5-bg: linear-gradient(135deg, rgba(155,89,182,.1), rgba(155,89,182,.2));
+}
+
+/* Clases para identificar productos */
+.producto-1 { 
+    background: var(--producto-1-bg) !important; 
+    color: var(--producto-1) !important; 
+}
+
+.producto-2 { 
+    background: var(--producto-2-bg) !important; 
+    color: var(--producto-2) !important; 
+}
+
+.producto-3 { 
+    background: var(--producto-3-bg) !important; 
+    color: var(--producto-3) !important; 
+}
+
+.producto-4 { 
+    background: var(--producto-4-bg) !important; 
+    color: var(--producto-4) !important; 
+}
+
+.producto-5 { 
+    background: var(--producto-5-bg) !important; 
+    color: var(--producto-5) !important; 
+}
+
+/* Estilos específicos para la tabla de ventas BCG */
+#tablaVentas tr:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+
+#tablaVentas .venta-input:focus {
+    border-color: var(--brand-green) !important;
+    box-shadow: 0 0 0 0.2rem rgba(24,179,107,.25) !important;
+    background: #ffffff !important;
+}
+
+#tablaVentas .venta-input:hover {
+    border-color: var(--brand-blue);
+    background: rgba(24,179,107,.05);
+}
+
+/* Animación suave para los cambios de porcentaje */
+.pct-venta {
+    transition: all 0.3s ease;
+}
+
+/* Efecto de pulso para el total cuando cambia */
+#totalVentas, #totalPorcentaje {
+    transition: all 0.3s ease;
+}
+
+.total-updated {
+    animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Ocultar el 0 por defecto en inputs de tipo text */
+input[type="text"]:invalid {
+    color: transparent;
+}
+
+input[type="text"]:valid,
+input[type="text"]:focus {
+    color: var(--brand-blue) !important;
+}

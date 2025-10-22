@@ -122,9 +122,9 @@ require_once 'includes/header.php';
             </div>
 
             <div class="d-flex justify-content-between mt-4">
-                <a href="cadena_valor.php" class="btn btn-nav">&laquo; Anterior: Cadena de Valor</a>
+                <a href="autodiagnostico_cadena_valor.php" class="btn btn-nav">&laquo; Anterior: Autodiagnóstico de la CVI</a>
                 <a href="dashboard.php" class="btn btn-nav-outline">Volver al Índice</a>
-                <a href="autodiagnostico_bdcg.php" class="btn btn-save">Siguiente: Autodiagnóstico &raquo;</a>
+                <a href="autodiagnostico_bdcg.php" class="btn btn-save">Siguiente: Autodiagnóstico BCG &raquo;</a>
             </div>
         </div>
     </div>

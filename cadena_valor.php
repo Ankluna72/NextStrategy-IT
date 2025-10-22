@@ -115,7 +115,7 @@ require_once 'includes/header.php';
             <div class="d-flex justify-content-between mt-4">
                 <a href="analisis_info.php" class="btn btn-nav">&laquo; Análisis Interno y Externo</a>
                 <a href="dashboard.php" class="btn btn-nav-outline">Volver al Índice</a>
-                <a href="autodiagnostico_cadena_valor.php" class="btn btn-save">Siguiente: Autodiagnóstico &raquo;</a>
+                <a href="autodiagnostico_cadena_valor.php" class="btn btn-save">Siguiente: Autodiagnóstico de la CVI &raquo;</a>
             </div>
         </div>
     </div>
