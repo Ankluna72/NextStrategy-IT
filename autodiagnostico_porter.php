@@ -75,18 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_porter->close();
 
         $foda_items = [
-            'oportunidad' => [
-                1 => $_POST['o1'] ?? '', 
-                2 => $_POST['o2'] ?? '',
-                3 => $_POST['o3'] ?? '',
-                4 => $_POST['o4'] ?? ''
-            ],
-            'amenaza' => [
-                1 => $_POST['a1'] ?? '', 
-                2 => $_POST['a2'] ?? '',
-                3 => $_POST['a3'] ?? '',
-                4 => $_POST['a4'] ?? ''
-            ]
+            'oportunidad' => [1 => $_POST['o1'] ?? '', 2 => $_POST['o2'] ?? ''],
+            'amenaza' => [1 => $_POST['a1'] ?? '', 2 => $_POST['a2'] ?? '']
         ];
         
         $stmt_delete_foda = $mysqli->prepare("DELETE FROM foda WHERE id_empresa = ? AND id_usuario = ? AND origen = 'porter'");
@@ -123,11 +113,7 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmt_load->close();
 
-// --- CAMBIO AQUÍ: AMPLIADO A 4 ---
-$foda_guardado = [
-    'o1' => '', 'o2' => '', 'o3' => '', 'o4' => '',
-    'a1' => '', 'a2' => '', 'a3' => '', 'a4' => ''
-];
+$foda_guardado = ['o1' => '', 'o2' => '', 'a1' => '', 'a2' => ''];
 $stmt_foda_load = $mysqli->prepare("SELECT tipo, descripcion, posicion FROM foda WHERE id_empresa = ? AND id_usuario = ? AND origen = 'porter'");
 $stmt_foda_load->bind_param("ii", $id_empresa_actual, $id_usuario_actual);
 $stmt_foda_load->execute();
@@ -135,13 +121,8 @@ $result_foda = $stmt_foda_load->get_result();
 while ($row = $result_foda->fetch_assoc()) {
     if ($row['tipo'] == 'oportunidad' && $row['posicion'] == 1) $foda_guardado['o1'] = $row['descripcion'];
     if ($row['tipo'] == 'oportunidad' && $row['posicion'] == 2) $foda_guardado['o2'] = $row['descripcion'];
-    if ($row['tipo'] == 'oportunidad' && $row['posicion'] == 3) $foda_guardado['o3'] = $row['descripcion'];
-    if ($row['tipo'] == 'oportunidad' && $row['posicion'] == 4) $foda_guardado['o4'] = $row['descripcion'];
-    
     if ($row['tipo'] == 'amenaza' && $row['posicion'] == 1) $foda_guardado['a1'] = $row['descripcion'];
     if ($row['tipo'] == 'amenaza' && $row['posicion'] == 2) $foda_guardado['a2'] = $row['descripcion'];
-    if ($row['tipo'] == 'amenaza' && $row['posicion'] == 3) $foda_guardado['a3'] = $row['descripcion'];
-    if ($row['tipo'] == 'amenaza' && $row['posicion'] == 4) $foda_guardado['a4'] = $row['descripcion'];
 }
 $stmt_foda_load->close();
 
@@ -305,17 +286,9 @@ if ($total_score < 30) {
                                     <label for="o1" class="form-label fw-bold">O1:</label>
                                     <input type="text" name="o1" id="o1" class="form-control" value="<?php echo htmlspecialchars($foda_guardado['o1']); ?>" placeholder="Ingrese la primera oportunidad...">
                                 </div>
-                                <div class="mb-2">
+                                <div>
                                     <label for="o2" class="form-label fw-bold">O2:</label>
                                     <input type="text" name="o2" id="o2" class="form-control" value="<?php echo htmlspecialchars($foda_guardado['o2']); ?>" placeholder="Ingrese la segunda oportunidad...">
-                                </div>
-                                <div class="mb-2">
-                                    <label for="o3" class="form-label fw-bold">O3:</label>
-                                    <input type="text" name="o3" id="o3" class="form-control" value="<?php echo htmlspecialchars($foda_guardado['o3']); ?>" placeholder="Ingrese la tercera oportunidad...">
-                                </div>
-                                <div>
-                                    <label for="o4" class="form-label fw-bold">O4:</label>
-                                    <input type="text" name="o4" id="o4" class="form-control" value="<?php echo htmlspecialchars($foda_guardado['o4']); ?>" placeholder="Ingrese la cuarta oportunidad...">
                                 </div>
                             </div>
                         </div>
@@ -328,17 +301,9 @@ if ($total_score < 30) {
                                     <label for="a1" class="form-label fw-bold">A1:</label>
                                     <input type="text" name="a1" id="a1" class="form-control" value="<?php echo htmlspecialchars($foda_guardado['a1']); ?>" placeholder="Ingrese la primera amenaza...">
                                 </div>
-                                <div class="mb-2">
+                                <div>
                                     <label for="a2" class="form-label fw-bold">A2:</label>
                                     <input type="text" name="a2" id="a2" class="form-control" value="<?php echo htmlspecialchars($foda_guardado['a2']); ?>" placeholder="Ingrese la segunda amenaza...">
-                                </div>
-                                <div class="mb-2">
-                                    <label for="a3" class="form-label fw-bold">A3:</label>
-                                    <input type="text" name="a3" id="a3" class="form-control" value="<?php echo htmlspecialchars($foda_guardado['a3']); ?>" placeholder="Ingrese la tercera amenaza...">
-                                </div>
-                                <div>
-                                    <label for="a4" class="form-label fw-bold">A4:</label>
-                                    <input type="text" name="a4" id="a4" class="form-control" value="<?php echo htmlspecialchars($foda_guardado['a4']); ?>" placeholder="Ingrese la cuarta amenaza...">
                                 </div>
                             </div>
                         </div>
