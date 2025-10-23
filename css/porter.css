@@ -1,0 +1,75 @@
+.porter-table th, .porter-table td {
+    vertical-align: middle;
+    text-align: center;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.porter-table .criterion-name {
+    text-align: left;
+    padding-left: 1.5rem;
+    font-weight: 500;
+    width: 25%;
+}
+
+.porter-table .header-group {
+    background-color: var(--brand-blue-light);
+    color: var(--brand-dark);
+    font-weight: 700;
+    text-align: left;
+    padding: 0.75rem 1rem;
+}
+
+.porter-table .label-hostil {
+    color: #e74c3c;
+    font-weight: 700;
+    width: 10%;
+}
+
+.porter-table .label-favorable {
+    color: #007bff;
+    font-weight: 700;
+    width: 10%;
+}
+
+.porter-table .radio-cell {
+    width: 8%;
+}
+
+.form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+    cursor: pointer;
+}
+
+#resultado-porter {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: none;
+    border-left: 5px solid var(--brand-green);
+    box-shadow: 0 8px 25px rgba(0,0,0,.1);
+    transition: all 0.5s ease-out;
+}
+
+.foda-card .card-header {
+    font-weight: 700;
+    color: #000;
+    text-align: center;
+}
+
+.foda-oportunidad { background-color: #ffe0b2; }
+.foda-amenaza { background-color: #e3f2fd; }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animated-result {
+    animation: fadeInUp 0.6s ease-out;
+}

@@ -694,7 +694,7 @@ for ($i=0;$i<$numProd;$i++){
                 <div class="d-flex justify-content-between mt-4">
                     <a href="matriz_bcg.php" class="btn btn-nav">&laquo; Anterior: BCG</a>
                     <a href="dashboard.php" class="btn btn-nav-outline">Volver al Índice</a>
-                    <a href="autodiagnostico_bdcg.php" class="btn btn-save">Siguiente: Análisis Porter &raquo;</a>
+                    <a href="porter_5fuerzas.php" class="btn btn-save">Siguiente: Análisis Porter &raquo;</a>
                 </div>
 
             </form>
