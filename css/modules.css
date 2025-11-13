@@ -327,6 +327,11 @@ body { background: linear-gradient(180deg, #f5faff 0%, #eef6fb 100%); }
     text-decoration: none;
 }
 
+.bg-brand {
+    background-color: var(--brand-green);
+    color: #ffffff !important;
+}
+
 .alert {
     border-radius: .5rem;
     border: none;
@@ -343,6 +348,163 @@ body { background: linear-gradient(180deg, #f5faff 0%, #eef6fb 100%); }
     background-color: rgba(220,53,69,.1);
     color: #dc3545;
     border-left: 4px solid #dc3545;
+}
+
+/* PEST module */
+.pest-conclusion-row {
+    background: rgba(24,179,107,.08);
+    border-left: 4px solid var(--brand-green);
+    padding: 1rem 1.5rem;
+    border-radius: .5rem;
+    font-weight: 600;
+    color: #0f2f46;
+    text-align: center;
+}
+
+.pest-foda-section {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.pest-foda-category {
+    margin-bottom: 1.5rem;
+}
+
+.pest-foda-header {
+    background: linear-gradient(135deg, #0b7a8d, #1f9fac);
+    color: white;
+    padding: 1rem 1.5rem;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: .05em;
+    border-radius: .5rem .5rem 0 0;
+}
+
+.pest-foda-item-input {
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.pest-foda-item-input:last-child {
+    border-radius: 0 0 .5rem .5rem;
+}
+
+.pest-foda-label {
+    min-width: 60px;
+    font-weight: 700;
+    color: #0f2f46;
+    font-size: 1.1rem;
+}
+
+.pest-foda-item-input .form-control {
+    flex: 1;
+    border: 1px solid #ced4da;
+    background: white;
+}
+
+.pest-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: .75rem;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,.08);
+}
+
+.pest-table th {
+    background: linear-gradient(135deg, var(--brand-dark), var(--brand-blue));
+    color: #ffffff;
+    font-size: .75rem;
+    text-transform: uppercase;
+    border: none;
+    padding: 1.25rem .75rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+}
+
+.pest-table th:first-child {
+    text-align: left;
+    padding-left: 1.5rem;
+}
+
+.pest-table th span {
+    display: block;
+    font-size: .65rem;
+    font-weight: 400;
+    margin-top: .25rem;
+    opacity: .9;
+}
+
+.pest-table td {
+    vertical-align: middle;
+    padding: 1.25rem .75rem;
+    border-bottom: 1px solid rgba(15,47,70,.06);
+}
+
+.pest-question {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    padding-left: 1.5rem;
+    padding-right: 1rem;
+    color: #303f4f;
+    font-weight: 500;
+    line-height: 1.6;
+}
+
+.pest-question-index {
+    flex-shrink: 0;
+    font-weight: 700;
+    color: var(--brand-blue);
+    font-size: 1rem;
+    padding-top: .1rem;
+}
+
+.pest-table .form-check-input {
+    width: 1.2rem;
+    height: 1.2rem;
+    border: 2px solid rgba(15,47,70,.25);
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.pest-table .form-check-input:hover {
+    border-color: var(--brand-green);
+    transform: scale(1.1);
+}
+
+.pest-table .form-check-input:checked {
+    background-color: var(--brand-green);
+    border-color: var(--brand-green);
+    box-shadow: 0 0 0 3px rgba(24,179,107,.15);
+}
+
+.pest-table tbody tr {
+    background: white;
+    transition: all .2s ease;
+}
+
+.pest-table tbody tr:nth-child(even) {
+    background-color: rgba(15,47,70,.02);
+}
+
+.pest-table tbody tr:hover {
+    background-color: rgba(24,179,107,.06);
+    transform: translateX(2px);
+}
+
+.pest-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.pest-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: .75rem;
+}
+
+.pest-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: .75rem;
 }
 
 /* Table styles for objetivos */
