@@ -303,7 +303,7 @@ if ($id_empresa_seleccionada) {
             <a href="analisis_pest.php" class="module-button">9. PEST</a>
         </div>
         <div class="col-md-4">
-            <a href="identificacion_estrategia.php" class="module-button">10. IDENTIFICACIÓN ESTRATEGIA</a>
+            <a href="id_estrategias.php" class="module-button">10. IDENTIFICACIÓN ESTRATEGIA</a>
         </div>
         <div class="col-md-4">
             <a href="matriz_came.php" class="module-button">11. MATRIZ CAME</a>

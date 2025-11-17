@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'fortaleza_3' => $_POST['fortaleza_3'] ?? '',
         'fortaleza_4' => $_POST['fortaleza_4'] ?? '',
         'debilidad_3' => $_POST['debilidad_3'] ?? '',
-        'debilidad_4' => $_POST['debilidad_4'] ?? ''
+        'debilidad_4' => $_POST['debilidad_4'] ?? '',
     ];
     
     // Guardar FODA en la base de datos si es la tabla que se está guardando
@@ -114,13 +114,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'fortaleza_3' => '',
         'fortaleza_4' => '',
         'debilidad_3' => '',
-        'debilidad_4' => ''
+        'debilidad_4' => '',
     ];
     
     // Cargar datos FODA existentes desde la base de datos
     $stmt_foda_load = $mysqli->prepare("SELECT tipo, descripcion, posicion FROM foda WHERE id_empresa = ? AND origen = 'bcg'");
-    $stmt_foda_load->bind_param("i", $id_empresa_actual);
-    $stmt_foda_load->execute();
+    $stmt_foda_load->bind_param("i", $id_empresa_actual);$stmt_foda_load->execute();
     $result_foda_load = $stmt_foda_load->get_result();
     while ($row = $result_foda_load->fetch_assoc()) {
         if ($row['tipo'] == 'fortaleza' && $row['posicion'] == 3) {
@@ -225,12 +224,11 @@ function guardarFODAEnBD($fodaData, $mysqli) {
     try {
         // Limpiar FODA anterior de BCG
         $stmt_delete = $mysqli->prepare("DELETE FROM foda WHERE id_empresa = ? AND origen = 'bcg'");
-        $stmt_delete->bind_param("i", $id_empresa);
-        $stmt_delete->execute();
+        $stmt_delete->bind_param("i", $id_empresa);$stmt_delete->execute();
         $stmt_delete->close();
         error_log("DEBUG FODA: Datos anteriores eliminados");
         
-        // Insertar nuevas fortalezas y debilidades
+        // Insertar nuevas fortalezas, debilidades, oportunidades y amenazas
         $stmt_insert = $mysqli->prepare("INSERT INTO foda (id_empresa, id_usuario, tipo, descripcion, origen, posicion) VALUES (?, ?, ?, ?, 'bcg', ?)");
         
         $guardados = 0;
@@ -636,7 +634,7 @@ for ($i=0;$i<$numProd;$i++){
                     </p>
                 </div>
 
-                <!-- Tabla FODA - Fortalezas y Debilidades -->
+                <!-- Tabla FODA - Fortalezas, Debilidades, Oportunidades y Amenazas -->
                 <div class="explanation-box p-3 mb-4">
                     
                     <p>Complete las fortalezas y debilidades más significativas identificadas en su análisis BCG.</p>

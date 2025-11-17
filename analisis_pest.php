@@ -10,7 +10,7 @@ if (!isset($_SESSION['id_empresa_actual'])) {
     exit();
 }
 
-$pageStyles = ['css/modules.css'];
+$pageStyles = ['css/modules.css', 'css/porter.css'];
 require_once 'includes/db_connection.php';
 require_once 'includes/header.php';
 
@@ -140,10 +140,10 @@ $stmtFecha->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $puntos = $_POST['puntos'] ?? [];
-    $o3 = trim($_POST['o3'] ?? '');
-    $o4 = trim($_POST['o4'] ?? '');
-    $a3 = trim($_POST['a3'] ?? '');
-    $a4 = trim($_POST['a4'] ?? '');
+    $o3 = isset($_POST['o3']) ? trim($_POST['o3']) : '';
+    $o4 = isset($_POST['o4']) ? trim($_POST['o4']) : '';
+    $a3 = isset($_POST['a3']) ? trim($_POST['a3']) : '';
+    $a4 = isset($_POST['a4']) ? trim($_POST['a4']) : '';
     $valores = [];
     $errores = [];
 
@@ -158,10 +158,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $valores[$numero] = $valor;
         }
-    }
-
-    if (empty($o3) || empty($o4) || empty($a3) || empty($a4)) {
-        $errores[] = "Debes completar las oportunidades y amenazas (O3, O4, A3, A4).";
     }
 
     if (empty($errores) && count($valores) === count($preguntas)) {
@@ -247,41 +243,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmtResumen->close();
 
             // Guardar/actualizar oportunidades y amenazas en tabla foda
-            $stmtDeleteFoda = $mysqli->prepare("DELETE FROM foda WHERE id_empresa = ? AND origen = 'pest' AND tipo IN ('oportunidad','amenaza')");
-            $stmtDeleteFoda->bind_param('i', $id_empresa_actual);
+            $id_usuario_actual = $_SESSION['id_usuario'];
+            $stmtDeleteFoda = $mysqli->prepare("DELETE FROM foda WHERE id_empresa = ? AND id_usuario = ? AND origen = 'pest' AND tipo IN ('oportunidad','amenaza')");
+            $stmtDeleteFoda->bind_param('ii', $id_empresa_actual, $id_usuario_actual);
             $stmtDeleteFoda->execute();
             $stmtDeleteFoda->close();
 
-            $stmtFodaInsert = $mysqli->prepare("INSERT INTO foda (id_empresa, tipo, descripcion, origen, posicion) VALUES (?, ?, ?, 'pest', ?)");
+            $stmtFodaInsert = $mysqli->prepare("INSERT INTO foda (id_empresa, id_usuario, tipo, descripcion, origen, posicion) VALUES (?, ?, ?, ?, 'pest', ?)");
             
-            $tipoOp = 'oportunidad';
-            $posOp3 = 3;
-            $stmtFodaInsert->bind_param('issi', $id_empresa_actual, $tipoOp, $o3, $posOp3);
-            $stmtFodaInsert->execute();
-            
-            $posOp4 = 4;
-            $stmtFodaInsert->bind_param('issi', $id_empresa_actual, $tipoOp, $o4, $posOp4);
-            $stmtFodaInsert->execute();
+            // Guardar oportunidades solo si tienen contenido
+            if (!empty($o3)) {
+                $tipoOp = 'oportunidad';
+                $posOp3 = 3;
+                $stmtFodaInsert->bind_param('iissi', $id_empresa_actual, $id_usuario_actual, $tipoOp, $o3, $posOp3);
+                $stmtFodaInsert->execute();
+            }
+            if (!empty($o4)) {
+                $tipoOp = 'oportunidad';
+                $posOp4 = 4;
+                $stmtFodaInsert->bind_param('iissi', $id_empresa_actual, $id_usuario_actual, $tipoOp, $o4, $posOp4);
+                $stmtFodaInsert->execute();
+            }
 
-            $tipoAm = 'amenaza';
-            $posAm3 = 3;
-            $stmtFodaInsert->bind_param('issi', $id_empresa_actual, $tipoAm, $a3, $posAm3);
-            $stmtFodaInsert->execute();
-            
-            $posAm4 = 4;
-            $stmtFodaInsert->bind_param('issi', $id_empresa_actual, $tipoAm, $a4, $posAm4);
-            $stmtFodaInsert->execute();
+            // Guardar amenazas solo si tienen contenido
+            if (!empty($a3)) {
+                $tipoAm = 'amenaza';
+                $posAm3 = 3;
+                $stmtFodaInsert->bind_param('iissi', $id_empresa_actual, $id_usuario_actual, $tipoAm, $a3, $posAm3);
+                $stmtFodaInsert->execute();
+            }
+            if (!empty($a4)) {
+                $tipoAm = 'amenaza';
+                $posAm4 = 4;
+                $stmtFodaInsert->bind_param('iissi', $id_empresa_actual, $id_usuario_actual, $tipoAm, $a4, $posAm4);
+                $stmtFodaInsert->execute();
+            }
 
             $stmtFodaInsert->close();
 
             $mysqli->commit();
-
-            $mensaje = '<div class="alert alert-success">Analisis PEST guardado correctamente.</div>';
+            
+            $foda_guardados = (!empty($o3) ? 1 : 0) + (!empty($o4) ? 1 : 0) + (!empty($a3) ? 1 : 0) + (!empty($a4) ? 1 : 0);
+            $mensaje = '<div class="alert alert-success alert-dismissible fade show" role="alert">
+                <strong>✓ Análisis PEST guardado correctamente.</strong> Se guardaron ' . count($valores) . ' respuestas y ' . $foda_guardados . ' elementos FODA.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>';
             $respuestasGuardadas = $valores;
             $fechaResumen = date('Y-m-d H:i:s');
         } catch (Throwable $e) {
             $mysqli->rollback();
-            $mensaje = '<div class="alert alert-danger">Ocurrio un error al guardar el analisis. Intenta nuevamente.</div>';
+            error_log("ERROR PEST: " . $e->getMessage());
+            error_log("ERROR PEST Trace: " . $e->getTraceAsString());
+            $mensaje = '<div class="alert alert-danger">Ocurrio un error al guardar el analisis: ' . htmlspecialchars($e->getMessage()) . '</div>';
         }
     } else {
         $mensaje = '<div class="alert alert-danger">' . implode('<br>', $errores) . '</div>';
@@ -303,8 +316,9 @@ foreach ($factorOrder as $factor) {
 $fodaOportunidades = [];
 $fodaAmenazas = [];
 
-$stmtFoda = $mysqli->prepare("SELECT descripcion FROM foda WHERE id_empresa = ? AND tipo = 'oportunidad' AND origen = 'pest' ORDER BY posicion ASC");
-$stmtFoda->bind_param('i', $id_empresa_actual);
+$id_usuario_actual = $_SESSION['id_usuario'];
+$stmtFoda = $mysqli->prepare("SELECT descripcion FROM foda WHERE id_empresa = ? AND id_usuario = ? AND tipo = 'oportunidad' AND origen = 'pest' ORDER BY posicion ASC");
+$stmtFoda->bind_param('ii', $id_empresa_actual, $id_usuario_actual);
 $stmtFoda->execute();
 $resultFoda = $stmtFoda->get_result();
 while ($row = $resultFoda->fetch_assoc()) {
@@ -313,8 +327,8 @@ while ($row = $resultFoda->fetch_assoc()) {
 $resultFoda->free();
 $stmtFoda->close();
 
-$stmtFodaAmenaza = $mysqli->prepare("SELECT descripcion FROM foda WHERE id_empresa = ? AND tipo = 'amenaza' AND origen = 'pest' ORDER BY posicion ASC");
-$stmtFodaAmenaza->bind_param('i', $id_empresa_actual);
+$stmtFodaAmenaza = $mysqli->prepare("SELECT descripcion FROM foda WHERE id_empresa = ? AND id_usuario = ? AND tipo = 'amenaza' AND origen = 'pest' ORDER BY posicion ASC");
+$stmtFodaAmenaza->bind_param('ii', $id_empresa_actual, $id_usuario_actual);
 $stmtFodaAmenaza->execute();
 $resultFodaAmenaza = $stmtFodaAmenaza->get_result();
 while ($row = $resultFodaAmenaza->fetch_assoc()) {
@@ -393,42 +407,51 @@ if ($fechaResumen) {
                 <?php endforeach; ?>
             </div>
 
-            <div class="pest-foda-section mt-4">
-                <div class="pest-foda-category">
-                    <div class="pest-foda-header">OPORTUNIDADES</div>
-                    <div class="pest-foda-item-input">
-                        <div class="pest-foda-label">O3</div>
-                        <input type="text" name="o3" class="form-control" value="<?php echo isset($fodaOportunidades[0]) ? htmlspecialchars($fodaOportunidades[0]) : ''; ?>" required>
-                    </div>
-                    <div class="pest-foda-item-input">
-                        <div class="pest-foda-label">O4</div>
-                        <input type="text" name="o4" class="form-control" value="<?php echo isset($fodaOportunidades[1]) ? htmlspecialchars($fodaOportunidades[1]) : ''; ?>" required>
+            <div class="row mt-4">
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 foda-card">
+                        <div class="card-header foda-oportunidad">OPORTUNIDADES</div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label for="o3" class="form-label fw-bold">O3:</label>
+                                <input type="text" name="o3" id="o3" class="form-control" value="<?php echo isset($fodaOportunidades[0]) ? htmlspecialchars($fodaOportunidades[0]) : ''; ?>" placeholder="Ingrese la tercera oportunidad...">
+                            </div>
+                            <div>
+                                <label for="o4" class="form-label fw-bold">O4:</label>
+                                <input type="text" name="o4" id="o4" class="form-control" value="<?php echo isset($fodaOportunidades[1]) ? htmlspecialchars($fodaOportunidades[1]) : ''; ?>" placeholder="Ingrese la cuarta oportunidad...">
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="pest-foda-category mt-4">
-                    <div class="pest-foda-header">AMENAZAS</div>
-                    <div class="pest-foda-item-input">
-                        <div class="pest-foda-label">A3</div>
-                        <input type="text" name="a3" class="form-control" value="<?php echo isset($fodaAmenazas[0]) ? htmlspecialchars($fodaAmenazas[0]) : ''; ?>" required>
-                    </div>
-                    <div class="pest-foda-item-input">
-                        <div class="pest-foda-label">A4</div>
-                        <input type="text" name="a4" class="form-control" value="<?php echo isset($fodaAmenazas[1]) ? htmlspecialchars($fodaAmenazas[1]) : ''; ?>" required>
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 foda-card">
+                        <div class="card-header foda-amenaza">AMENAZAS</div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label for="a3" class="form-label fw-bold">A3:</label>
+                                <input type="text" name="a3" id="a3" class="form-control" value="<?php echo isset($fodaAmenazas[0]) ? htmlspecialchars($fodaAmenazas[0]) : ''; ?>" placeholder="Ingrese la tercera amenaza...">
+                            </div>
+                            <div>
+                                <label for="a4" class="form-label fw-bold">A4:</label>
+                                <input type="text" name="a4" id="a4" class="form-control" value="<?php echo isset($fodaAmenazas[1]) ? htmlspecialchars($fodaAmenazas[1]) : ''; ?>" placeholder="Ingrese la cuarta amenaza...">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="text-end mt-3">
-                <button type="submit" class="btn btn-save">
+            <p class="text-success small fst-italic mb-2 text-center">Debe completar el test primero para poder guardar las oportunidades y amenazas.</p>
+            <div class="text-center mt-3">
+                <button type="submit" class="btn btn-save px-5 py-2" style="min-width: 700px;">
                     <i class="fas fa-save me-2"></i>Guardar
                 </button>
             </div>
         </form>
 
         <div class="d-flex justify-content-between mt-5">
-            <a href="porter_5fuerzas.php" class="btn btn-nav">&laquo; Volver: 8. Las 5 Fuerzas de Porter</a>
+            <a href="autodiagnostico_porter.php" class="btn btn-nav">&laquo; Volver: Autodiagnóstico: 5 Fuerzas de Porter</a>
             <a href="dashboard.php" class="btn btn-nav-outline">Volver al indice</a>
-            <a href="identificacion_estrategia.php" class="btn btn-save">Siguiente: 10. Identificacion de Estrategia &raquo;</a>
+            <a href="id_estrategias.php" class="btn btn-save">Siguiente: 10. Identificacion de Estrategia &raquo;</a>
         </div>
     </div>
 </div>

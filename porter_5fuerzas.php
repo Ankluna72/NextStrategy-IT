@@ -160,7 +160,7 @@ require_once 'includes/header.php';
             </div>
 
             <div class="d-flex justify-content-between mt-4">
-                <a href="matriz_bcg.php" class="btn btn-nav">&laquo; Anterior: Matriz BCG</a>
+                <a href="autodiagnostico_bdcg.php" class="btn btn-nav">&laquo; Anterior: Autodiagnóstico BCG</a>
                 <a href="dashboard.php" class="btn btn-nav-outline">Volver al Índice</a>
                 <a href="autodiagnostico_porter.php" class="btn btn-save">Siguiente: Autodiagnóstico Porter &raquo;</a>
             </div>

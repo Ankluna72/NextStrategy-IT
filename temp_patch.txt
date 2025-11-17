@@ -1,0 +1,3 @@
+Línea 491 de id_estrategias.php:
+Cambiar: <a href="resumen_plan.php" class="btn btn-nav">Siguiente: Resumen del Plan &raquo;</a>
+Por: <a href="resumen_plan.php" class="btn btn-save">Siguiente: Resumen del Plan &raquo;</a>

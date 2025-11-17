@@ -1,0 +1,683 @@
+/* Estilos para la página de Identificación de Estrategias */
+
+.dafo-diagram-container {
+    max-width: 800px;
+    margin: 3rem auto;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 25px rgba(0,0,0,.1);
+}
+
+.dafo-center-label {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.dafo-center-label span {
+    display: inline-block;
+    background: linear-gradient(135deg, #0b7a8d, #1f9fac);
+    color: white;
+    padding: 1rem 3rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 15px rgba(11,122,141,.3);
+    letter-spacing: 0.05em;
+}
+
+.dafo-grid {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 15px;
+}
+
+.dafo-column-left {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.dafo-column-right {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.dafo-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.dafo-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1.5rem 1rem;
+    border: 3px solid #333;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    min-height: 80px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+
+.dafo-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,.2);
+}
+
+.dafo-box span {
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+}
+
+/* Colores específicos para cada tipo de caja */
+.fortalezas-box {
+    background-color: #D2B48C;
+    color: #000;
+    min-height: 120px;
+}
+
+.debilidades-box {
+    background-color: #90EE90;
+    color: #000;
+    min-height: 120px;
+}
+
+.oportunidades-box {
+    background-color: #FFD7B5;
+    color: #000;
+}
+
+.amenazas-box {
+    background-color: #ADD8E6;
+    color: #000;
+}
+
+.estrategias-ofensivas-box {
+    background-color: #B0B8E0;
+    color: white;
+}
+
+.estrategias-defensivas-box {
+    background-color: #9BA7D9;
+    color: white;
+}
+
+.estrategias-reorientacion-box {
+    background-color: #A5B2D8;
+    color: white;
+}
+
+.estrategias-supervivencia-box {
+    background-color: #B5BFE2;
+    color: white;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .dafo-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dafo-column-left {
+        grid-template-columns: 1fr 1fr;
+        display: grid;
+    }
+    
+    .dafo-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .dafo-box {
+        min-height: 70px;
+        font-size: 0.85rem;
+        padding: 1rem 0.75rem;
+    }
+    
+    .dafo-center-label span {
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .dafo-diagram-container {
+        padding: 1rem;
+    }
+    
+    .dafo-box {
+        font-size: 0.75rem;
+        padding: 0.75rem 0.5rem;
+        min-height: 60px;
+    }
+    
+    .fortalezas-box,
+    .debilidades-box {
+        min-height: 90px;
+    }
+}
+
+/* Estilos para el formulario de estrategias */
+.form-label.fw-bold {
+    font-size: 1.05rem;
+    margin-bottom: 0.75rem;
+}
+
+.form-label i {
+    color: var(--brand-green);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+textarea.form-control:focus {
+    border-color: var(--brand-green);
+    box-shadow: 0 0 0 0.2rem rgba(24,179,107,.25);
+}
+
+/* Animación de entrada */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dafo-diagram-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.dafo-box {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+/* ======= FODA resumen (debajo del diagrama) ======= */
+.foda-summary {
+    max-width: 900px;
+    margin: 16px auto 0 auto;
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,.1), 0 2px 8px rgba(0,0,0,.06);
+    border-top: 5px solid var(--brand-green);
+    background: linear-gradient(180deg,#ffffff 0%,#f8fafb 100%);
+    position: relative;
+}
+
+.foda-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    min-height: 96px;
+    position: relative;
+}
+
+.foda-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    letter-spacing: .1em;
+    color: #2b2b2b;
+    border-right: 4px solid rgba(0,0,0,.15);
+    font-size: .9rem;
+    text-transform: uppercase;
+    box-shadow: inset -3px 0 6px rgba(0,0,0,.12), 2px 0 4px rgba(0,0,0,.05);
+    position: relative;
+}
+
+.foda-items {
+    display: grid;
+    grid-template-rows: repeat(4, 1fr);
+    align-items: stretch;
+    position: relative;
+}
+
+.foda-item {
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    min-height: 32px;
+    color: #2c3e50;
+    font-size: .92rem;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    background: rgba(255,255,255,.4);
+    backdrop-filter: blur(2px);
+}
+.foda-item:last-child { border-bottom: none; }
+.foda-item:not(.empty):before {
+    content:"";
+    width:6px;
+    height:6px;
+    background: var(--brand-green);
+    border-radius:50%;
+    flex-shrink:0;
+    box-shadow:0 0 0 2px rgba(24,179,107,.25), 0 0 8px rgba(24,179,107,.4);
+    animation: pulse 2s ease-in-out infinite;
+}
+.foda-item:not(.empty):hover {
+    background: rgba(255,255,255,.8);
+    padding-left: 26px;
+    transform: translateX(3px);
+    box-shadow: 2px 0 8px rgba(0,0,0,.08);
+}
+.foda-item.empty { 
+    color:#a0aec0; 
+    font-style: italic;
+    background: rgba(255,255,255,.15);
+}
+.foda-item:nth-child(odd):not(.empty) {
+    background: rgba(255,255,255,.5);
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow:0 0 0 2px rgba(24,179,107,.25), 0 0 8px rgba(24,179,107,.4); }
+    50% { box-shadow:0 0 0 3px rgba(24,179,107,.4), 0 0 12px rgba(24,179,107,.6); }
+}
+
+/* Colores por fila - sincronizados con diagrama DAFO */
+.foda-row.debilidades .foda-label { 
+    background: linear-gradient(135deg, #90EE90, #7dd87d);
+    color: #1a4d1a;
+    text-shadow: 0 1px 2px rgba(255,255,255,.3);
+    font-weight: 800;
+}
+.foda-row.debilidades .foda-items { 
+    background: linear-gradient(180deg, #f0fff0, #f8fff8);
+    border-left: 3px solid #90EE90;
+}
+
+.foda-row.amenazas .foda-label { 
+    background: linear-gradient(135deg, #ADD8E6, #95c9dd);
+    color: #0d3d5c;
+    text-shadow: 0 1px 2px rgba(255,255,255,.3);
+    font-weight: 800;
+}
+.foda-row.amenazas .foda-items { 
+    background: linear-gradient(180deg, #f0f8ff, #f8fcff);
+    border-left: 3px solid #ADD8E6;
+}
+
+.foda-row.fortalezas .foda-label { 
+    background: linear-gradient(135deg, #D2B48C, #c4a57b);
+    color: #3d2f1f;
+    text-shadow: 0 1px 2px rgba(255,255,255,.3);
+    font-weight: 800;
+}
+.foda-row.fortalezas .foda-items { 
+    background: linear-gradient(180deg, #faf6f0, #fffcf5);
+    border-left: 3px solid #D2B48C;
+}
+
+.foda-row.oportunidades .foda-label { 
+    background: linear-gradient(135deg, #FFD7B5, #ffc89d);
+    color: #5c3a1f;
+    text-shadow: 0 1px 2px rgba(255,255,255,.3);
+    font-weight: 800;
+}
+.foda-row.oportunidades .foda-items { 
+    background: linear-gradient(180deg, #fff8f0, #fffcf8);
+    border-left: 3px solid #FFD7B5;
+}
+
+/* Intro text */
+.foda-intro {
+    font-size: .95rem;
+    color: #0f2f46;
+    margin: 0 0 12px 4px;
+    line-height: 1.5;
+    background: linear-gradient(90deg,rgba(24,179,107,.12),rgba(15,47,70,.05));
+    padding: 10px 16px;
+    border-left:4px solid var(--brand-green);
+    border-radius:6px;
+}
+
+@media (max-width: 576px) {
+    .foda-row { grid-template-columns: 120px 1fr; }
+    .foda-item { padding: 8px 12px; }
+}
+
+/* ======= MATRIZ DE CRUCE (Fortalezas x Oportunidades) ======= */
+.matriz-cruce-header {
+    max-width: 900px;
+    margin: 0 auto 16px auto;
+    padding: 16px 20px;
+    background: linear-gradient(90deg, rgba(24,179,107,.1), rgba(15,47,70,.05));
+    border-left: 4px solid var(--brand-green);
+    border-radius: 8px;
+}
+
+.matriz-cruce-header p {
+    margin: 0 0 8px 0;
+    color: #0f2f46;
+    line-height: 1.5;
+}
+
+.matriz-cruce-header p:last-child {
+    margin-bottom: 0;
+    font-size: .88rem;
+    color: #5b6b75;
+}
+
+.matriz-cruce-container {
+    max-width: 900px;
+    margin: 0 auto;
+    overflow-x: auto;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.1);
+}
+
+.matriz-cruce-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+}
+
+.matriz-cruce-table th,
+.matriz-cruce-table td {
+    border: 1px solid #e0e0e0;
+    text-align: center;
+    padding: 12px 10px;
+}
+
+.corner-cell {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    font-size: 1.2rem;
+    color: var(--brand-green);
+    width: 120px;
+}
+
+.header-oportunidades {
+    background: linear-gradient(135deg, #FFD7B5, #ffc89d);
+    color: #5c3a1f;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-size: .95rem;
+    text-shadow: 0 1px 2px rgba(255,255,255,.3);
+}
+
+/* Encabezado AMENAZAS para tablas FA y DA */
+.header-amenazas {
+    background: linear-gradient(135deg, #ADD8E6, #95c9dd);
+    color: #0d3d5c;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-size: .95rem;
+    text-shadow: 0 1px 2px rgba(255,255,255,.4);
+}
+
+.header-fortalezas-col {
+    background: linear-gradient(180deg, #faf6f0, #fffcf5); /* mismo degradado que F1 */
+    border: 1px solid #e0e0e0;
+    width: 60px;
+}
+
+.matriz-save-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    background: linear-gradient(135deg, var(--brand-blue), var(--brand-dark));
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,.12);
+}
+.matriz-save-btn:hover {
+    filter: brightness(1.05);
+}
+.matriz-save-btn i { font-size: 14px; }
+
+/* Mensajes de guardado por tabla */
+.save-status {
+    margin: 8px 0 0 0;
+    font-size: .9rem;
+    line-height: 1.4;
+    opacity: 0;
+    height: 0;
+    transition: opacity .25s ease, height .25s ease;
+}
+.save-status.show { opacity: 1; height: auto; }
+.save-status .badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.08);
+}
+.save-status.success .badge {
+    background: var(--brand-green);
+    color: #fff;
+}
+.save-status.error .badge {
+    background: #e55353;
+    color: #fff;
+}
+
+.col-header {
+    background: linear-gradient(180deg, #fff8f0, #fffcf8);
+    font-weight: 600;
+    color: #5c3a1f;
+    font-size: .9rem;
+    width: 80px;
+}
+
+/* Encabezado O1 con mismo fondo que celda fusionada/F1 */
+.col-header.o1-header {
+    background: linear-gradient(180deg, #faf6f0, #fffcf5);
+    border: 1px solid #e0e0e0;
+}
+
+.header-fortalezas {
+    background: linear-gradient(135deg, #D2B48C, #c4a57b);
+    color: #3d2f1f;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: .95rem;
+    text-shadow: 0 1px 2px rgba(255,255,255,.3);
+    width: 60px;
+    padding: 20px 10px;
+}
+
+/* Encabezado vertical DEBILIDADES para tablas DO y DA */
+.header-debilidades {
+    background: linear-gradient(135deg, #90EE90, #7dd87d);
+    color: #1a4d1a;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: .95rem;
+    text-shadow: 0 1px 2px rgba(255,255,255,.4);
+    width: 60px;
+    padding: 20px 10px;
+}
+
+.row-label {
+    background: linear-gradient(180deg, #faf6f0, #fffcf5);
+    font-weight: 600;
+    color: #3d2f1f;
+    font-size: .9rem;
+    width: 60px;
+}
+
+.data-cell {
+    background: #fefefe;
+    padding: 8px;
+}
+
+.matriz-input {
+    width: 60px;
+    height: 40px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--brand-blue);
+    transition: all .3s ease;
+    background: #ffffff;
+}
+
+.matriz-input:focus {
+    border-color: var(--brand-green);
+    box-shadow: 0 0 0 3px rgba(24,179,107,.2);
+    outline: none;
+    transform: scale(1.05);
+}
+
+.matriz-input:hover {
+    border-color: var(--brand-green);
+}
+
+/* Limitar apariencia de un solo dígito visualmente */
+.matriz-input::-webkit-inner-spin-button, 
+.matriz-input::-webkit-outer-spin-button {
+    margin: 0;
+}
+
+.total-row {
+    background: linear-gradient(135deg, #fff9e6, #fffbf0);
+    font-weight: 700;
+}
+
+.total-label {
+    background: linear-gradient(135deg, #ffd966, #ffc933);
+    color: #5c3a1f;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: .05em;
+}
+
+.total-cell {
+    background: linear-gradient(135deg, #fff9e6, #fffbf0);
+    font-weight: 700;
+}
+
+.total-value {
+    display: inline-block;
+    min-width: 30px;
+    padding: 6px 12px;
+    background: var(--brand-green);
+    color: white;
+    border-radius: 20px;
+    font-size: .95rem;
+    box-shadow: 0 2px 8px rgba(24,179,107,.3);
+}
+
+.total-general-cell {
+    background: linear-gradient(135deg, #ffd966, #ffcc00) !important;
+    font-weight: 800;
+}
+
+.total-general-value {
+    display: inline-block;
+    min-width: 40px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, var(--brand-blue), var(--brand-dark));
+    color: white;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    box-shadow: 0 3px 12px rgba(15,47,70,.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .matriz-cruce-table {
+        font-size: .85rem;
+    }
+    
+    .matriz-input {
+        width: 50px;
+        height: 36px;
+        font-size: .9rem;
+    }
+    
+    .corner-cell {
+        width: 80px;
+    }
+    
+    .header-fortalezas {
+        width: 40px;
+        padding: 15px 8px;
+    }
+}
+
+/* ======= SÍNTESIS DE RESULTADOS ======= */
+.sintesis-container {
+    max-width: 900px;
+    margin: 28px auto 0 auto;
+}
+
+.sintesis-title {
+    text-align: center;
+    font-weight: 800;
+    color: var(--brand-blue);
+    letter-spacing: .03em;
+    margin-bottom: 10px;
+}
+
+.sintesis-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,.08);
+}
+
+.sintesis-table th,
+.sintesis-table td {
+    border: 1px solid #e0e0e0;
+    padding: 14px 12px;
+    text-align: center;
+}
+
+.sintesis-table thead th {
+    background: linear-gradient(135deg, var(--brand-blue), var(--brand-dark));
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+.sintesis-rel {
+    background: #cdeaf6;
+    color: #0f2f46;
+    font-weight: 700;
+    width: 90px;
+}
+
+.sintesis-tipo { font-weight: 700; color: #0f2f46; }
+
+.sintesis-puntos {
+    background: #fff9c4;
+    font-weight: 800;
+    color: #5c3a1f;
+    width: 120px;
+}
+
+.sintesis-desc { text-align: left; color: #0f2f46; }

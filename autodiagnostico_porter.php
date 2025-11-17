@@ -64,19 +64,22 @@ $labels_extremos = [
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mysqli->begin_transaction();
     try {
+        // Guardar respuestas de Porter (si existen)
         $stmt_porter = $mysqli->prepare("INSERT INTO porter_respuestas (id_empresa, criterio_id, valor) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE valor = VALUES(valor)");
+        $criterios_guardados = 0;
         foreach ($criterios as $id => $descripcion) {
             if (isset($_POST['criterio_' . $id])) {
                 $valor = intval($_POST['criterio_' . $id]);
                 $stmt_porter->bind_param("iii", $id_empresa_actual, $id, $valor);
                 $stmt_porter->execute();
+                $criterios_guardados++;
             }
         }
         $stmt_porter->close();
 
         $foda_items = [
-            'oportunidad' => [1 => $_POST['o1'] ?? '', 2 => $_POST['o2'] ?? ''],
-            'amenaza' => [1 => $_POST['a1'] ?? '', 2 => $_POST['a2'] ?? '']
+            'oportunidad' => [1 => trim($_POST['o1'] ?? ''), 2 => trim($_POST['o2'] ?? '')],
+            'amenaza' => [1 => trim($_POST['a1'] ?? ''), 2 => trim($_POST['a2'] ?? '')]
         ];
         
         $stmt_delete_foda = $mysqli->prepare("DELETE FROM foda WHERE id_empresa = ? AND id_usuario = ? AND origen = 'porter'");
@@ -96,10 +99,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_foda->close();
 
         $mysqli->commit();
-        $mensaje = '<div class="alert alert-success">Análisis guardado correctamente.</div>';
+        $mensaje = '<div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>✓ Análisis guardado correctamente.</strong> Se guardaron ' . $criterios_guardados . ' criterios Porter y las oportunidades/amenazas FODA.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>';
     } catch (Exception $e) {
         $mysqli->rollback();
-        $mensaje = '<div class="alert alert-danger">Error al guardar el análisis: ' . $e->getMessage() . '</div>';
+        error_log("ERROR PORTER: " . $e->getMessage());
+        error_log("ERROR PORTER Trace: " . $e->getTraceAsString());
+        $mensaje = '<div class="alert alert-danger">Error al guardar el análisis: ' . htmlspecialchars($e->getMessage()) . '</div>';
     }
 }
 
@@ -184,7 +192,7 @@ if ($total_score < 30) {
                                 <td class="label-hostil"><?php echo $labels_extremos[$id][0]; ?></td>
                                 <?php foreach ($valor_labels as $val_id => $label): ?>
                                 <td class="radio-cell">
-                                    <input class="form-check-input porter-radio" type="radio" name="criterio_<?php echo $id; ?>" value="<?php echo $val_id; ?>" <?php echo ($valor_guardado == $val_id) ? 'checked' : ''; ?> required>
+                                    <input class="form-check-input porter-radio" type="radio" name="criterio_<?php echo $id; ?>" value="<?php echo $val_id; ?>" <?php echo ($valor_guardado == $val_id) ? 'checked' : ''; ?>>
                                 </td>
                                 <?php endforeach; ?>
                                 <td class="label-favorable"><?php echo $labels_extremos[$id][1]; ?></td>
@@ -310,8 +318,9 @@ if ($total_score < 30) {
                     </div>
                 </div>
 
-                <div class="d-grid gap-2 mt-4">
-                    <button type="submit" class="btn btn-save btn-lg">
+                <p class="text-success small fst-italic mb-2 text-center">Debe completar el test primero para poder guardar las oportunidades y amenazas.</p>
+                <div class="text-center mt-3">
+                    <button type="submit" class="btn btn-save px-5 py-2" style="min-width: 700px;">
                         <i class="fas fa-save me-2"></i>Guardar Análisis
                     </button>
                 </div>

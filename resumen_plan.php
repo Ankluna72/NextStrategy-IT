@@ -10,7 +10,7 @@ if (!isset($_SESSION['id_empresa_actual'])) {
     exit();
 }
 
-$pageStyles = ['css/resumen.css'];
+$pageStyles = ['css/resumen.css', 'css/estrategias.css'];
 require_once 'includes/db_connection.php';
 require_once 'includes/header.php';
 
@@ -182,63 +182,40 @@ $stmt_objetivos->close();
                 $foda_data[$tipo] = array_slice($items, 0, 4);
             }
             ?>
-            <div class="foda-matriz" style="max-width:900px;margin:auto;">
-                <div style="background:#1565c0;color:#fff;padding:8px 32px;font-weight:700;font-size:1.2rem;">ANÁLISIS FODA</div>
-                <div style="display:grid;grid-template-rows:repeat(4,1fr);border:1px solid #e0e0e0;">
-                    <div style="background:#e8f5e9;border-bottom:1px dotted #bbb;padding:12px 16px;">
-                        <strong>DEBILIDADES</strong>
-                        <div style="margin:8px 0 0 0;">
-                            <?php 
-                            $debilidades = $foda_data['debilidad'];
-                            for ($i = 0; $i < 4; $i++): 
-                                $item = isset($debilidades[$i]) ? $debilidades[$i] : '';
-                            ?>
-                                <div style="border-bottom:1px dotted #ccc;padding:4px 0;min-height:20px;">
-                                    <?php echo !empty($item) ? htmlspecialchars($item) : '&nbsp;'; ?>
-                                </div>
-                            <?php endfor; ?>
+            <div class="module-container mt-4">
+                <div class="module-content">
+                    <div class="foda-summary">
+                        <div class="foda-row debilidades">
+                            <div class="foda-label"><span>DEBILIDADES</span></div>
+                            <div class="foda-items">
+                                <?php $debilidades = $foda_data['debilidad']; for ($i=0;$i<4;$i++): $item = $debilidades[$i] ?? ''; ?>
+                                    <div class="foda-item<?php echo empty($item)?' empty':''; ?>"><?php echo !empty($item)? htmlspecialchars($item): '&nbsp;'; ?></div>
+                                <?php endfor; ?>
+                            </div>
                         </div>
-                    </div>
-                    <div style="background:#e3f2fd;border-bottom:1px dotted #bbb;padding:12px 16px;">
-                        <strong>AMENAZAS</strong>
-                        <div style="margin:8px 0 0 0;">
-                            <?php 
-                            $amenazas = $foda_data['amenaza'];
-                            for ($i = 0; $i < 4; $i++): 
-                                $item = isset($amenazas[$i]) ? $amenazas[$i] : '';
-                            ?>
-                                <div style="border-bottom:1px dotted #ccc;padding:4px 0;min-height:20px;">
-                                    <?php echo !empty($item) ? htmlspecialchars($item) : '&nbsp;'; ?>
-                                </div>
-                            <?php endfor; ?>
+                        <div class="foda-row amenazas">
+                            <div class="foda-label"><span>AMENAZAS</span></div>
+                            <div class="foda-items">
+                                <?php $amenazas = $foda_data['amenaza']; for ($i=0;$i<4;$i++): $item = $amenazas[$i] ?? ''; ?>
+                                    <div class="foda-item<?php echo empty($item)?' empty':''; ?>"><?php echo !empty($item)? htmlspecialchars($item): '&nbsp;'; ?></div>
+                                <?php endfor; ?>
+                            </div>
                         </div>
-                    </div>
-                    <div style="background:#fffde7;border-bottom:1px dotted #bbb;padding:12px 16px;">
-                        <strong>FORTALEZAS</strong>
-                        <div style="margin:8px 0 0 0;">
-                            <?php 
-                            $fortalezas = $foda_data['fortaleza'];
-                            for ($i = 0; $i < 4; $i++): 
-                                $item = isset($fortalezas[$i]) ? $fortalezas[$i] : '';
-                            ?>
-                                <div style="border-bottom:1px dotted #ccc;padding:4px 0;min-height:20px;">
-                                    <?php echo !empty($item) ? htmlspecialchars($item) : '&nbsp;'; ?>
-                                </div>
-                            <?php endfor; ?>
+                        <div class="foda-row fortalezas">
+                            <div class="foda-label"><span>FORTALEZAS</span></div>
+                            <div class="foda-items">
+                                <?php $fortalezas = $foda_data['fortaleza']; for ($i=0;$i<4;$i++): $item = $fortalezas[$i] ?? ''; ?>
+                                    <div class="foda-item<?php echo empty($item)?' empty':''; ?>"><?php echo !empty($item)? htmlspecialchars($item): '&nbsp;'; ?></div>
+                                <?php endfor; ?>
+                            </div>
                         </div>
-                    </div>
-                    <div style="background:#ffe0b2;padding:12px 16px;">
-                        <strong>OPORTUNIDADES</strong>
-                        <div style="margin:8px 0 0 0;">
-                            <?php 
-                            $oportunidades = $foda_data['oportunidad'];
-                            for ($i = 0; $i < 4; $i++): 
-                                $item = isset($oportunidades[$i]) ? $oportunidades[$i] : '';
-                            ?>
-                                <div style="border-bottom:1px dotted #ccc;padding:4px 0;min-height:20px;">
-                                    <?php echo !empty($item) ? htmlspecialchars($item) : '&nbsp;'; ?>
-                                </div>
-                            <?php endfor; ?>
+                        <div class="foda-row oportunidades">
+                            <div class="foda-label"><span>OPORTUNIDADES</span></div>
+                            <div class="foda-items">
+                                <?php $oportunidades = $foda_data['oportunidad']; for ($i=0;$i<4;$i++): $item = $oportunidades[$i] ?? ''; ?>
+                                    <div class="foda-item<?php echo empty($item)?' empty':''; ?>"><?php echo !empty($item)? htmlspecialchars($item): '&nbsp;'; ?></div>
+                                <?php endfor; ?>
+                            </div>
                         </div>
                     </div>
                 </div>
