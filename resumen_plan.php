@@ -10,13 +10,14 @@ if (!isset($_SESSION['id_empresa_actual'])) {
     exit();
 }
 
-$pageStyles = ['css/resumen.css', 'css/estrategias.css'];
+// Incluimos came.css para que se vea bien en el resumen también
+$pageStyles = ['css/resumen.css', 'css/estrategias.css', 'css/came.css'];
 require_once 'includes/db_connection.php';
 require_once 'includes/header.php';
 
 $id_empresa_actual = $_SESSION['id_empresa_actual'];
 
-// 1. Obtener datos de la empresa (Misión, Visión, etc.) incluyendo imagen
+// 1. Obtener datos de la empresa
 $stmt_empresa = $mysqli->prepare("SELECT nombre_empresa, mision, vision, valores, unidades_estrategicas, imagen FROM empresa WHERE id = ?");
 $stmt_empresa->bind_param("i", $id_empresa_actual);
 $stmt_empresa->execute();
@@ -25,7 +26,7 @@ $stmt_empresa->close();
 
 $valores_lista = !empty($empresa_data['valores']) ? explode("\n", trim($empresa_data['valores'])) : [];
 
-// 2. Obtener y organizar los objetivos estratégicos
+// 2. Obtener Objetivos
 $stmt_objetivos = $mysqli->prepare("SELECT id, descripcion, tipo, id_padre FROM objetivos_estrategicos WHERE id_empresa = ? ORDER BY id_padre ASC, id ASC");
 $stmt_objetivos->bind_param("i", $id_empresa_actual);
 $stmt_objetivos->execute();
@@ -50,6 +51,22 @@ foreach ($objetivos_especificos_map as $especifico) {
 }
 $stmt_objetivos->close();
 
+// 3. Obtener datos CAME (NUEVO: Usando tabla matriz_came con JSON)
+$datos_came = [];
+$stmt_came = $mysqli->prepare("SELECT acciones_c, acciones_a, acciones_m, acciones_e FROM matriz_came WHERE id_empresa = ?");
+$stmt_came->bind_param("i", $id_empresa_actual);
+$stmt_came->execute();
+$res_came = $stmt_came->get_result();
+
+if ($row_came = $res_came->fetch_assoc()) {
+    // Decodificamos y filtramos elementos vacíos para no mostrar líneas en blanco
+    $datos_came['corregir'] = array_filter(json_decode($row_came['acciones_c'], true) ?? []);
+    $datos_came['afrontar'] = array_filter(json_decode($row_came['acciones_a'], true) ?? []);
+    $datos_came['mantener'] = array_filter(json_decode($row_came['acciones_m'], true) ?? []);
+    $datos_came['explotar'] = array_filter(json_decode($row_came['acciones_e'], true) ?? []);
+}
+$stmt_came->close();
+
 ?>
 
 <div class="container mt-4">
@@ -59,7 +76,6 @@ $stmt_objetivos->close();
             <h2 class="empresa-title"><?php echo htmlspecialchars($empresa_data['nombre_empresa']); ?></h2>
         </div>
         
-        <!-- Imagen de la empresa -->
         <?php if (!empty($empresa_data['imagen'])): ?>
         <div class="empresa-imagen-container">
             <img src="uploads/empresa_images/<?php echo htmlspecialchars($empresa_data['imagen']); ?>" 
@@ -69,8 +85,7 @@ $stmt_objetivos->close();
         <?php endif; ?>
         
         <div class="resumen-content">
-            
-            <!-- Misión -->
+            <!-- Misión, Visión, Valores, Objetivos -->
             <div class="resumen-section">
                 <h3 class="section-title">Misión</h3>
                 <div class="section-content">
@@ -78,7 +93,6 @@ $stmt_objetivos->close();
                 </div>
             </div>
             
-            <!-- Visión -->
             <div class="resumen-section">
                 <h3 class="section-title">Visión</h3>
                 <div class="section-content">
@@ -86,7 +100,6 @@ $stmt_objetivos->close();
                 </div>
             </div>
             
-            <!-- Valores -->
             <div class="resumen-section">
                 <h3 class="section-title">Valores</h3>
                 <div class="section-content">
@@ -102,15 +115,6 @@ $stmt_objetivos->close();
                 </div>
             </div>
             
-            <!-- Unidades Estratégicas -->
-            <div class="resumen-section">
-                <h3 class="section-title">Unidades Estratégicas</h3>
-                <div class="section-content">
-                    <p><?php echo !empty($empresa_data['unidades_estrategicas']) ? nl2br(htmlspecialchars($empresa_data['unidades_estrategicas'])) : '<span class="text-muted">No definidas.</span>'; ?></p>
-                </div>
-            </div>
-            
-            <!-- Objetivos Estratégicos -->
             <div class="resumen-section">
                 <h3 class="section-title">Objetivos Estratégicos</h3>
                 <div class="objetivos-layout-container">
@@ -158,26 +162,17 @@ $stmt_objetivos->close();
         <div class="resumen-section mt-5">
             <h3 class="section-title" style="margin-left:32px;">Análisis FODA</h3>
             <?php
-            // Obtener FODA de todas las fuentes (cadena_valor, bcg, etc.)
             $stmt_foda = $mysqli->prepare("SELECT tipo, descripcion, origen FROM foda WHERE id_empresa = ? ORDER BY tipo, id ASC");
             $stmt_foda->bind_param("i", $id_empresa_actual);
             $stmt_foda->execute();
             $result_foda = $stmt_foda->get_result();
             $foda_data = [
-                'debilidad' => [],
-                'amenaza' => [],
-                'fortaleza' => [],
-                'oportunidad' => []
+                'debilidad' => [], 'amenaza' => [], 'fortaleza' => [], 'oportunidad' => []
             ];
             while ($row = $result_foda->fetch_assoc()) {
                 $foda_data[$row['tipo']][] = $row['descripcion'];
             }
             $stmt_foda->close();
-            
-            // Debug: mostrar datos obtenidos
-            // echo "<!-- Debug FODA: " . print_r($foda_data, true) . " -->";
-            
-            // Limitar a máximo 4 elementos por categoría
             foreach ($foda_data as $tipo => $items) {
                 $foda_data[$tipo] = array_slice($items, 0, 4);
             }
@@ -221,11 +216,86 @@ $stmt_objetivos->close();
                 </div>
             </div>
         </div>
+
+        <!-- MATRIZ CAME (SECCIÓN NUEVA) -->
+        <div class="resumen-section mt-5">
+            <h3 class="section-title" style="margin-left:32px;">Estrategias CAME</h3>
+            <div class="module-container mt-4">
+                <div class="module-content">
+                    <?php if (empty($datos_came['corregir']) && empty($datos_came['afrontar']) && empty($datos_came['mantener']) && empty($datos_came['explotar'])): ?>
+                         <div class="alert alert-info">No se han definido estrategias CAME. <a href="matriz_came.php">Definir ahora</a></div>
+                    <?php else: ?>
+                        <div class="came-container">
+                            <!-- Corregir -->
+                            <?php if(!empty($datos_came['corregir'])): ?>
+                            <div class="came-section section-corregir mb-3">
+                                <div class="came-letter-box" style="font-size: 2rem; width: 80px;">C</div>
+                                <div class="came-content-box">
+                                    <div class="came-header">Acciones para Corregir Debilidades</div>
+                                    <ul class="list-group list-group-flush">
+                                        <?php foreach($datos_came['corregir'] as $accion): ?>
+                                            <li class="list-group-item"><i class="fas fa-check-circle text-primary me-2"></i><?php echo htmlspecialchars($accion); ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+
+                            <!-- Afrontar -->
+                            <?php if(!empty($datos_came['afrontar'])): ?>
+                            <div class="came-section section-afrontar mb-3">
+                                <div class="came-letter-box" style="font-size: 2rem; width: 80px;">A</div>
+                                <div class="came-content-box">
+                                    <div class="came-header">Acciones para Afrontar Amenazas</div>
+                                    <ul class="list-group list-group-flush">
+                                        <?php foreach($datos_came['afrontar'] as $accion): ?>
+                                            <li class="list-group-item"><i class="fas fa-shield-alt text-info me-2"></i><?php echo htmlspecialchars($accion); ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+
+                            <!-- Mantener -->
+                            <?php if(!empty($datos_came['mantener'])): ?>
+                            <div class="came-section section-mantener mb-3">
+                                <div class="came-letter-box" style="font-size: 2rem; width: 80px;">M</div>
+                                <div class="came-content-box">
+                                    <div class="came-header">Acciones para Mantener Fortalezas</div>
+                                    <ul class="list-group list-group-flush">
+                                        <?php foreach($datos_came['mantener'] as $accion): ?>
+                                            <li class="list-group-item"><i class="fas fa-star text-success me-2"></i><?php echo htmlspecialchars($accion); ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+
+                            <!-- Explotar -->
+                            <?php if(!empty($datos_came['explotar'])): ?>
+                            <div class="came-section section-explotar mb-3">
+                                <div class="came-letter-box" style="font-size: 2rem; width: 80px;">E</div>
+                                <div class="came-content-box">
+                                    <div class="came-header">Acciones para Explotar Oportunidades</div>
+                                    <ul class="list-group list-group-flush">
+                                        <?php foreach($datos_came['explotar'] as $accion): ?>
+                                            <li class="list-group-item"><i class="fas fa-rocket text-success me-2"></i><?php echo htmlspecialchars($accion); ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
         <!-- Navegación -->
         <div class="resumen-navigation">
             <a href="dashboard.php" class="btn btn-nav"><i class="fas fa-home"></i> Ir al Inicio</a>
-            <a href="autodiagnostico_cadena_valor.php" class="btn btn-save"><i class="fas fa-edit"></i> Editar FODA (Cadena de Valor)</a>
-            <a href="autodiagnostico_bdcg.php" class="btn btn-save"><i class="fas fa-edit"></i> Editar FODA (BCG)</a>
+            <a href="matriz_came.php" class="btn btn-save"><i class="fas fa-edit"></i> Editar CAME</a>
+            <button onclick="window.print()" class="btn btn-outline-brand"><i class="fas fa-print"></i> Imprimir / PDF</button>
         </div>
     </div>
 </div>

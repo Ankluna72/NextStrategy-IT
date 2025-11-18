@@ -488,7 +488,7 @@ if ($stmt_mcv = $mysqli->prepare("SELECT tipo, fila, columna, valor FROM matriz_
             <div class="d-flex justify-content-between mt-4">
                 <a href="analisis_pest.php" class="btn btn-nav">&laquo; Anterior: Análisis Externo: PEST</a>
                 <a href="dashboard.php" class="btn btn-nav-outline">Volver al Índice</a>
-                <a href="resumen_plan.php" class="btn btn-save">Siguiente: Resumen del Plan &raquo;</a>
+                <a href="matriz_came.php" class="btn btn-save">Siguiente: 11. Matriz CAME &raquo;</a>
             </div>
         </div>
     </div>

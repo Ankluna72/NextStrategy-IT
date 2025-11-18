@@ -1,0 +1,118 @@
+.came-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.came-section {
+    display: flex;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,.05);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Caja lateral con la letra (C, A, M, E) */
+.came-letter-box {
+    width: 120px;
+    background: linear-gradient(135deg, #3a8fb7, #2c7da0);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    flex-shrink: 0;
+    border-right: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Contenedor de la derecha (Título y Inputs) */
+.came-content-box {
+    flex-grow: 1;
+    background: white;
+    display: flex;
+    flex-direction: column;
+}
+
+.came-header {
+    background: #2c7da0;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Lista de inputs */
+.came-inputs-list {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.came-input-row {
+    display: flex;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.came-input-row:last-child {
+    border-bottom: none;
+}
+
+.came-index {
+    width: 50px;
+    background: #f0f4f8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #5b6b75;
+    border-right: 1px solid #e0e0e0;
+}
+
+.came-input-field {
+    flex-grow: 1;
+    padding: 8px 12px;
+}
+
+.came-input-field input {
+    width: 100%;
+    border: 1px solid transparent;
+    padding: 8px;
+    border-radius: 4px;
+    transition: all 0.3s;
+    background: transparent;
+}
+
+.came-input-field input:focus {
+    border-color: var(--brand-green);
+    background: white;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(24,179,107,0.1);
+}
+
+/* Colores específicos para cada sección */
+
+/* Corregir (Debilidades) */
+.section-corregir .came-letter-box { background: linear-gradient(135deg, #4a90e2, #357abd); }
+.section-corregir .came-header { background: #357abd; }
+
+/* Afrontar (Amenazas) */
+.section-afrontar .came-letter-box { background: linear-gradient(135deg, #5bc0de, #46b8da); }
+.section-afrontar .came-header { background: #46b8da; }
+
+/* Mantener (Fortalezas) */
+.section-mantener .came-letter-box { background: linear-gradient(135deg, #17a2b8, #138496); }
+.section-mantener .came-header { background: #138496; }
+
+/* Explotar (Oportunidades) */
+.section-explotar .came-letter-box { background: linear-gradient(135deg, #20c997, #1aa179); }
+.section-explotar .came-header { background: #1aa179; }
+
+/* Responsive */
+@media (max-width: 600px) {
+    .came-section { flex-direction: column; }
+    .came-letter-box { width: 100%; height: 60px; font-size: 2rem; }
+}
