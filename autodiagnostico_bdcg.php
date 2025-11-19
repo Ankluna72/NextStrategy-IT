@@ -297,25 +297,33 @@ function calc_totales_y_porcentajes($ventas){
 }
 
 function calc_prm_php($ventas, $competidores){
-    // PRM por producto = ventas_producto / max(ventas_competidor) o referencia
-    // Convertir cadenas vacías a 0 para evitar errores de tipo
+    // Fórmula Excel: =SI(C57=0,0,SI(D13/C57>2,2,D13/C57))
+    // C57 = Mayor competidor, D13 = Ventas del producto
+    // Si Mayor = 0, PRM = 0
+    // Si Ventas/Mayor > 2, PRM = 2
+    // Sino, PRM = Ventas/Mayor
+    
     $ventas_numericas = array_map(function($v) {
         return ($v === '' || $v === null) ? 0.0 : floatval($v);
     }, $ventas);
     
-    $max_global = (count($ventas_numericas)>0)? max($ventas_numericas) : 0.0;
     $prm = [];
     foreach ($ventas_numericas as $i=>$v){
         $maxcomp = 0.0;
         if (isset($competidores[$i]) && count($competidores[$i])>0) {
-            // También convertir competidores a números
             $comp_numericos = array_map(function($c) {
                 return ($c === '' || $c === null) ? 0.0 : floatval($c);
             }, $competidores[$i]);
             $maxcomp = max($comp_numericos);
         }
-        $ref = ($maxcomp>0)? $maxcomp : ($max_global>0? $max_global : 1.0);
-        $prm[] = ($ref>0)? ($v/$ref) : 0.0;
+        
+        // Aplicar fórmula Excel exacta
+        if ($maxcomp == 0) {
+            $prm[] = 0.0;
+        } else {
+            $ratio = $v / $maxcomp;
+            $prm[] = ($ratio > 2) ? 2.0 : $ratio;
+        }
     }
     return $prm;
 }
@@ -624,6 +632,94 @@ for ($i=0;$i<$numProd;$i++){
                     </div>
                 </div>
 
+                <!-- Matriz BCG Visual -->
+                <div class="explanation-box p-4 mb-5" style="background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%); box-shadow: 0 8px 30px rgba(0,0,0,.15); border-radius: 1.2rem; border: 3px solid #18b36b; margin-top: 3rem; margin-bottom: 3rem;">
+                    <div style="text-align: center; background: linear-gradient(135deg, #0f2f46, #18b36b); padding: 1.5rem; margin: -1rem -1rem 2rem -1rem; border-radius: 1rem 1rem 0 0;">
+                        <h3 style="color: white; font-weight: 800; margin: 0; font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px;">
+                            📊 MATRIZ BCG - VISUALIZACIÓN INTERACTIVA
+                        </h3>
+                        <p style="color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0; font-size: 0.95rem;">
+                            Posicionamiento estratégico de productos según PRM y TCM
+                        </p>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: center; margin: 2rem auto; padding: 2rem; background: white; border-radius: 1rem; box-shadow: inset 0 2px 10px rgba(0,0,0,.05);">
+                        <div id="bcg-matrix" style="position: relative; width: 600px; height: 400px; border: 4px solid #0f2f46; background: linear-gradient(to right, #f8f9fa 50%, #e9ecef 50%), linear-gradient(to bottom, #f8f9fa 50%, #e9ecef 50%); background-size: 100% 100%; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,.1);">
+                            <!-- Líneas divisorias -->
+                            <div style="position: absolute; left: 50%; top: 0; width: 3px; height: 100%; background-color: #0f2f46; z-index: 1;"></div>
+                            <div style="position: absolute; left: 0; top: 50%; width: 100%; height: 3px; background-color: #0f2f46; z-index: 1;"></div>
+                            
+                            <!-- Etiquetas de cuadrantes -->
+                            <div style="position: absolute; top: 10px; left: 10px; background: rgba(139,69,19,0.1); padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 11px; color: #8B4513;">INTERROGANTES</div>
+                            <div style="position: absolute; top: 10px; right: 10px; background: rgba(65,105,225,0.1); padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 11px; color: #4169E1;">ESTRELLAS</div>
+                            <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(34,139,34,0.1); padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 11px; color: #228B22;">VACAS LECHERAS</div>
+                            <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(105,105,105,0.1); padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 11px; color: #696969;">PERROS</div>
+                            
+                            <!-- Etiquetas de los ejes -->
+                            <div style="position: absolute; bottom: -35px; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 13px; color: #0f2f46; background: white; padding: 3px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,.1);">PRM = 1.0</div>
+                            <div style="position: absolute; left: -100px; top: 50%; transform: translateY(-50%) rotate(-90deg); font-weight: bold; font-size: 13px; color: #0f2f46; white-space: nowrap;">TCM Promedio</div>
+                            
+                            <!-- Iconos en los cuadrantes -->
+                            <div style="position: absolute; top: 35px; left: 35px; font-size: 40px; opacity: 0.3;">❓</div>
+                            <div style="position: absolute; top: 35px; right: 35px; font-size: 40px; opacity: 0.3;">⭐</div>
+                            <div style="position: absolute; bottom: 35px; right: 35px; font-size: 40px; opacity: 0.3;">🐄</div>
+                            <div style="position: absolute; bottom: 35px; left: 35px; font-size: 40px; opacity: 0.3;">🐕</div>
+                            
+                            <!-- Burbujas de productos -->
+                            <?php for ($i=0; $i<$numProd; $i++): 
+                                // Posición inicial temporal (se actualizará con JavaScript)
+                                $initialX = 70 + ($i * 100);
+                                $initialY = 170;
+                            ?>
+                            <div id="bubble<?php echo $i+1; ?>" class="product-bubble-bcg" 
+                                 style="position: absolute; 
+                                        left: <?php echo $initialX; ?>px; 
+                                        top: <?php echo $initialY; ?>px; 
+                                        width: 70px; 
+                                        height: 70px; 
+                                        background-color: <?php echo getProductoColor($i); ?>; 
+                                        border-radius: 50%; 
+                                        display: flex; 
+                                        align-items: center; 
+                                        justify-content: center; 
+                                        font-weight: 800; 
+                                        font-size: 14px; 
+                                        color: white; 
+                                        text-shadow: 2px 2px 4px rgba(0,0,0,0.5); 
+                                        transition: all 0.3s ease; 
+                                        z-index: 100; 
+                                        cursor: pointer; 
+                                        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                                        border: 4px solid rgba(255,255,255,0.5);"
+                                 title="<?php echo $productos[$i]; ?>: <?php echo number_format($porcVentas[$i],1); ?>%">
+                                <span style="font-size: 13px; font-weight: 900;"><?php echo number_format($porcVentas[$i],1); ?>%</span>
+                            </div>
+                            <?php endfor; ?>
+                        </div>
+                    </div>
+                    
+                    <!-- Leyenda de productos -->
+                    <div style="display: flex; justify-content: center; margin-top: 30px; gap: 15px; flex-wrap: wrap; padding: 1rem; background: linear-gradient(135deg, rgba(15,47,70,.05), rgba(24,179,107,.05)); border-radius: 0.75rem;">
+                        <?php for ($i=0; $i<$numProd; $i++): ?>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: white; border-radius: 8px; border: 2px solid <?php echo getProductoColor($i); ?>; box-shadow: 0 2px 8px rgba(0,0,0,.1); transition: all 0.3s ease;" 
+                             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,.15)';"
+                             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,.1)';">
+                            <div style="width: 28px; height: 28px; border-radius: 50%; background-color: <?php echo getProductoColor($i); ?>; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 2px solid white;"></div>
+                            <span style="font-size: 14px; font-weight: 700; color: #0f2f46;" id="legend_producto<?php echo $i+1; ?>"><?php echo $productos[$i]; ?></span>
+                        </div>
+                        <?php endfor; ?>
+                    </div>
+                    
+                    <!-- Información adicional -->
+                    <div style="margin-top: 2rem; padding: 1rem; background: linear-gradient(135deg, #e3f2fd, #f3e5f5); border-radius: 0.75rem; border-left: 4px solid #18b36b;">
+                        <p style="margin: 0; font-size: 13px; color: #0f2f46; line-height: 1.6;">
+                            <strong>💡 Interpretación:</strong> Las burbujas representan sus productos en la matriz BCG. 
+                            El tamaño indica el porcentaje de ventas, la posición horizontal el PRM (Participación Relativa del Mercado), 
+                            y la posición vertical el TCM (Tasa de Crecimiento del Mercado).
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Texto de reflexión -->
                 <div class="explanation-box p-4 mb-4" style="background: linear-gradient(135deg, rgba(24,179,107,.05), rgba(15,47,70,.05)); border-left: 4px solid var(--brand-green);">
                     <p style="color: var(--brand-blue); font-weight: 600; margin-bottom: 1rem; text-align: justify;">
@@ -788,13 +884,18 @@ function calcularEnJS(){
         document.querySelector('.mayor-comp[data-prod="'+p+'"]').innerText = fmt(maxc,2);
     }
 
-    // PRM
-    const maxGlobal = Math.max(...ventas,0);
+    // PRM - Fórmula Excel: =SI(C57=0,0,SI(D13/C57>2,2,D13/C57))
+    // C57 = Mayor competidor, D13 = Ventas del producto
     let prms = [];
     for (let p=0;p<numProd;p++){
         const maxc = Math.max(...competidores[p],0);
-        const ref = maxc>0? maxc : (maxGlobal>0? maxGlobal : 1);
-        prms[p] = ref>0? ventas[p]/ref : 0;
+        
+        if (maxc === 0) {
+            prms[p] = 0;
+        } else {
+            const ratio = ventas[p] / maxc;
+            prms[p] = (ratio > 2) ? 2 : ratio;
+        }
     }
 
     // growth promedio
@@ -817,6 +918,8 @@ function calcularEnJS(){
     document.querySelectorAll('.res-prm').forEach((td,i)=> td.innerText = fmt(prms[i],3));
     document.querySelectorAll('.res-porc').forEach((td,i)=> td.innerText = fmt((total>0? ventas[i]/total*100 : 0),2)+' %');
 
+    // Actualizar matriz BCG visual
+    actualizarMatrizBCG();
 }
 
 // Eventos
@@ -896,8 +999,160 @@ function mostrarMensaje(mensaje, tipo) {
     }, 4000);
 }
 
+// Función para actualizar la Matriz BCG Visual
+function actualizarMatrizBCG() {
+    console.log('🎯 Actualizando Matriz BCG...');
+    
+    const numProd = <?php echo $numProd; ?>;
+    const matrixWidth = 600;
+    const matrixHeight = 400;
+    
+    // Obtener TCMs calculados
+    let tcms = [];
+    document.querySelectorAll('.res-tcm').forEach((td, i) => {
+        const text = td.innerText.replace('%', '').trim();
+        tcms[i] = parseFloat(text) || 0;
+    });
+    console.log('📊 TCMs:', tcms);
+    
+    // Obtener PRMs calculados
+    let prms = [];
+    document.querySelectorAll('.res-prm').forEach((td, i) => {
+        const text = td.innerText.trim();
+        prms[i] = parseFloat(text) || 0;
+    });
+    console.log('📈 PRMs:', prms);
+    
+    // Obtener porcentajes de ventas
+    let porcentajes = [];
+    document.querySelectorAll('.pct-venta').forEach((td, i) => {
+        const text = td.innerText.replace('%', '').trim();
+        porcentajes[i] = parseFloat(text) || 0;
+    });
+    
+    // Obtener ventas para calcular tamaño de burbujas
+    const ventasEls = document.querySelectorAll('.venta-input');
+    let ventas = Array.from(ventasEls).map(e => parseFloat(e.value || 0) || 0);
+    const maxVentas = Math.max(...ventas, 1);
+    
+    // Calcular TCM promedio para la línea divisoria
+    const tcmPromedio = tcms.reduce((a, b) => a + b, 0) / tcms.length;
+    
+    for (let i = 0; i < numProd; i++) {
+        const bubble = document.getElementById('bubble' + (i + 1));
+        if (!bubble) {
+            console.error('❌ No se encontró bubble' + (i + 1));
+            continue;
+        }
+        
+        console.log(`🔵 Procesando Producto ${i+1}...`);
+        
+        const tcm = tcms[i];
+        const prm = prms[i];
+        const ventaProducto = ventas[i];
+        
+        // Calcular tamaño de burbuja basado en porcentaje de ventas
+        const minSize = 50;
+        const maxSize = 120;
+        const bubbleSize = minSize + ((ventaProducto / maxVentas) * (maxSize - minSize));
+        
+        // Posición X basada en PRM
+        // PRM >= 1 (Alto) → Derecha | PRM < 1 (Bajo) → Izquierda
+        const margenX = 40;
+        const anchoUtil = matrixWidth - (2 * margenX) - bubbleSize;
+        let posX;
+        
+        const maxPRM = Math.max(...prms);
+        if (maxPRM < 0.001) {
+            // Sin datos PRM: distribuir uniformemente
+            const espacioTotal = matrixWidth - (2 * margenX) - bubbleSize;
+            const paso = espacioTotal / (numProd + 1);
+            posX = margenX + (paso * (i + 1));
+        } else {
+            if (prm <= 0.01) {
+                posX = margenX;  // Extremo izquierda (PRM muy bajo)
+            } else if (prm >= 2) {
+                posX = matrixWidth - margenX - bubbleSize;  // Extremo derecha (PRM muy alto)
+            } else {
+                // Escala logarítmica para mejor distribución
+                const logPRM = Math.log10(prm);
+                const logMin = Math.log10(0.01);  // -2
+                const logMax = Math.log10(2);      // 0.301
+                
+                // Normalizar entre 0 y 1
+                const factorX = (logPRM - logMin) / (logMax - logMin);
+                // PRM alto va a la derecha
+                posX = margenX + (factorX * anchoUtil);
+            }
+        }
+        
+        // Posición Y basada en TCM
+        // TCM alto → Arriba | TCM bajo → Abajo
+        const margenY = 40;
+        const altoUtil = matrixHeight - (2 * margenY) - bubbleSize;
+        let posY;
+        
+        const maxTCM = Math.max(...tcms);
+        const minTCM = Math.min(...tcms.filter(t => t > 0));
+        const rangoTCM = maxTCM - minTCM;
+        
+        if (rangoTCM < 0.1) {
+            // Sin rango significativo: distribuir en zigzag
+            const espacioVertical = matrixHeight - (2 * margenY) - bubbleSize;
+            const pasoY = espacioVertical / (numProd + 1);
+            const offset = (i % 2 === 0) ? 0 : pasoY * 0.3;
+            posY = margenY + (pasoY * (i + 1)) + offset;
+        } else {
+            // Factor normalizado: 0 (TCM bajo) a 1 (TCM alto)
+            const factorY = (tcm - minTCM) / rangoTCM;
+            // TCM alto (factorY = 1) → Arriba (margenY)
+            // TCM bajo (factorY = 0) → Abajo (margenY + altoUtil)
+            posY = margenY + ((1 - factorY) * altoUtil);
+        }
+        
+        // Asegurar que las burbujas estén dentro de los límites
+        posX = Math.max(10, Math.min(posX, matrixWidth - bubbleSize - 10));
+        posY = Math.max(10, Math.min(posY, matrixHeight - bubbleSize - 10));
+        
+        // Aplicar posición y tamaño
+        bubble.style.left = posX + 'px';
+        bubble.style.top = posY + 'px';
+        bubble.style.width = bubbleSize + 'px';
+        bubble.style.height = bubbleSize + 'px';
+        bubble.textContent = porcentajes[i].toFixed(1) + '%';
+        
+        console.log(`✅ Producto ${i+1}: pos(${posX.toFixed(0)}, ${posY.toFixed(0)}), tamaño: ${bubbleSize.toFixed(0)}px`);
+        
+        // Ajustar tamaño de fuente según el tamaño de la burbuja
+        const fontSize = Math.max(10, Math.min(16, bubbleSize / 6));
+        bubble.style.fontSize = fontSize + 'px';
+    }
+    
+    console.log('✨ Matriz BCG actualizada correctamente');
+}
+
 // Calcular al cargar para mostrar valores guardados
-window.addEventListener('load', function(){ calcularEnJS(); });
+window.addEventListener('load', function(){ 
+    calcularEnJS(); 
+    
+    // Pequeño retraso para asegurar que el DOM esté listo
+    setTimeout(function() {
+        actualizarMatrizBCG();
+    }, 100);
+    
+    // Efecto hover para las burbujas
+    const bubbles = document.querySelectorAll('.product-bubble-bcg');
+    bubbles.forEach((bubble, index) => {
+        bubble.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1)';
+            this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+        });
+        bubble.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+            this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+        });
+    });
+});
 
 </script>
 
