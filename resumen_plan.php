@@ -65,16 +65,18 @@ while ($row = $result_foda->fetch_assoc()) {
 }
 $stmt_foda->close();
 
-// Obtener estrategia identificada (de matriz_came o tabla estrategias)
+// Obtener estrategia identificada y conclusiones desde resumen_ejecutivo
 $estrategia_foda = '';
-$stmt_estrategia = $mysqli->prepare("SELECT estrategia_identificada FROM matriz_came WHERE id_empresa = ?");
-$stmt_estrategia->bind_param("i", $id_empresa_actual);
-$stmt_estrategia->execute();
-$res_estrategia = $stmt_estrategia->get_result();
-if ($row_est = $res_estrategia->fetch_assoc()) {
-    $estrategia_foda = $row_est['estrategia_identificada'] ?? '';
+$conclusiones = '';
+$stmt_resumen = $mysqli->prepare("SELECT estrategia_identificada, conclusiones FROM resumen_ejecutivo WHERE id_empresa = ?");
+$stmt_resumen->bind_param("i", $id_empresa_actual);
+$stmt_resumen->execute();
+$res_resumen = $stmt_resumen->get_result();
+if ($row_resumen = $res_resumen->fetch_assoc()) {
+    $estrategia_foda = $row_resumen['estrategia_identificada'] ?? '';
+    $conclusiones = $row_resumen['conclusiones'] ?? '';
 }
-$stmt_estrategia->close();
+$stmt_resumen->close();
 
 // Obtener acciones competitivas (de matriz_came)
 $acciones_competitivas = [];
@@ -92,17 +94,6 @@ if ($row_acc = $res_acciones->fetch_assoc()) {
 }
 $stmt_acciones->close();
 
-// Obtener conclusiones
-$conclusiones = '';
-$stmt_concl = $mysqli->prepare("SELECT conclusiones FROM resumen_ejecutivo WHERE id_empresa = ?");
-$stmt_concl->bind_param("i", $id_empresa_actual);
-$stmt_concl->execute();
-$res_concl = $stmt_concl->get_result();
-if ($row_concl = $res_concl->fetch_assoc()) {
-    $conclusiones = $row_concl['conclusiones'] ?? '';
-}
-$stmt_concl->close();
-
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -111,6 +102,13 @@ $stmt_concl->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plan Estratégico - <?php echo htmlspecialchars($empresa_data['nombre_empresa']); ?></title>
     <style>
+        :root {
+            --brand-dark: #0b1f2a;
+            --brand-blue: #0f2f46;
+            --brand-green: #18b36b;
+            --brand-green-600: #12935a;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -118,168 +116,194 @@ $stmt_concl->close();
         }
         
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(180deg, #f0f6ff 0%, #e8f2ff 100%);
             padding: 20px;
-            line-height: 1.3;
-            font-size: 11px;
+            line-height: 1.6;
+            color: #333;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background-color: white;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,.12);
         }
         
         .header {
-            background: linear-gradient(135deg, #40a8c4 0%, #1e7a9e 100%);
+            background: linear-gradient(135deg, var(--brand-blue), var(--brand-dark));
             color: white;
-            padding: 15px;
+            padding: 25px;
             text-align: center;
-            margin: -20px -20px 20px -20px;
+            margin: -30px -30px 30px -30px;
+            border-radius: 12px 12px 0 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,.15);
         }
         
         .header h1 {
-            font-size: 20px;
+            font-size: 24px;
             margin: 0;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,.3);
         }
         
         .index-tab {
-            background-color: #e57373;
+            background: linear-gradient(135deg, #e57373, #d32f2f);
             color: white;
-            padding: 8px 15px;
+            padding: 10px 20px;
             display: inline-block;
-            margin-bottom: 15px;
-            font-weight: bold;
-            border: 2px solid #333;
-            font-size: 12px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(211,47,47,.3);
+            font-size: 13px;
+            letter-spacing: 0.5px;
         }
         
         .logo-container {
             text-align: center;
-            margin: 15px 0 20px 0;
-            padding: 20px;
-            border: 2px solid #1976d2;
-            background-color: #f8f9fa;
+            margin: 20px 0 30px 0;
+            padding: 30px;
+            border: 2px dashed rgba(15,47,70,.2);
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            border-radius: 12px;
         }
         
         .logo-container img {
-            max-width: 150px;
-            max-height: 100px;
+            max-width: 200px;
+            max-height: 120px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.1);
         }
         
         .section-title {
-            background-color: #1976d2;
+            background: linear-gradient(135deg, var(--brand-blue), var(--brand-dark));
             color: white;
-            padding: 8px 15px;
-            margin: 15px 0 10px 0;
-            font-weight: bold;
-            font-size: 12px;
+            padding: 12px 20px;
+            margin: 25px 0 15px 0;
+            font-weight: 700;
+            font-size: 14px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(15,47,70,.2);
+            letter-spacing: 0.5px;
         }
         
         .info-row {
             display: flex;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             align-items: flex-start;
-            font-size: 10px;
+            gap: 10px;
         }
         
         .info-label {
-            color: #1976d2;
-            font-weight: bold;
-            margin-right: 8px;
-            min-width: 180px;
-            font-size: 10px;
+            color: var(--brand-blue);
+            font-weight: 700;
+            min-width: 200px;
+            font-size: 12px;
         }
         
         .info-value {
             flex: 1;
-            padding: 6px;
-            border: 2px solid #1976d2;
-            background-color: white;
-            font-size: 10px;
+            padding: 10px;
+            border: 1px solid rgba(15,47,70,.15);
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border-radius: 6px;
+            font-size: 12px;
         }
         
         .content-box {
-            border: 2px solid #1976d2;
-            padding: 10px;
-            min-height: 60px;
-            margin-bottom: 15px;
-            font-size: 10px;
+            border: 1px solid rgba(15,47,70,.15);
+            padding: 15px;
+            min-height: 80px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border-radius: 8px;
+            font-size: 12px;
         }
         
         .valores-table {
             width: 100%;
-            border-collapse: collapse;
-            margin: 8px 0;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 10px 0;
+            border-radius: 8px;
+            overflow: hidden;
         }
         
         .valores-table td {
-            border: 2px solid #1976d2;
-            padding: 6px;
-            font-size: 10px;
+            border: 1px solid rgba(15,47,70,.15);
+            padding: 10px;
+            font-size: 12px;
         }
         
         .valores-table td:first-child {
-            width: 25px;
+            width: 40px;
             text-align: center;
-            font-weight: bold;
-            background-color: #e3f2fd;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            color: var(--brand-blue);
         }
         
         .foda-grid {
             display: grid;
-            grid-template-columns: 150px 1fr;
-            gap: 0;
-            margin: 15px 0;
+            grid-template-columns: 180px 1fr;
+            gap: 10px;
+            margin: 20px 0;
         }
         
         .foda-cell {
-            border: 2px solid #1976d2;
-            padding: 10px;
-            min-height: 70px;
-            font-size: 9px;
-            line-height: 1.3;
+            border: 1px solid rgba(15,47,70,.15);
+            padding: 15px;
+            min-height: 100px;
+            border-radius: 8px;
+            font-size: 11px;
+            line-height: 1.5;
         }
         
         .foda-label {
-            font-weight: bold;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
+            font-size: 12px;
+            letter-spacing: 0.5px;
         }
         
-        .foda-debilidades { background-color: #fff9c4; }
-        .foda-amenazas { background-color: #b3e5fc; }
-        .foda-fortalezas { background-color: #ffe0b2; }
-        .foda-oportunidades { background-color: #ffccbc; }
+        .foda-debilidades { background: linear-gradient(135deg, #fff9c4, #fff59d); }
+        .foda-amenazas { background: linear-gradient(135deg, #b3e5fc, #81d4fa); }
+        .foda-fortalezas { background: linear-gradient(135deg, #ffe0b2, #ffcc80); }
+        .foda-oportunidades { background: linear-gradient(135deg, #ffccbc, #ffab91); }
         
         .objetivos-grid {
             display: grid;
-            grid-template-columns: 120px 1fr 1fr;
+            grid-template-columns: 140px 1fr 1fr;
             gap: 0;
-            margin: 15px 0;
-            border: 2px solid #000;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,.08);
         }
         
         .obj-header {
-            background-color: #fff9c4;
-            border: 2px solid #000;
-            padding: 6px;
-            font-weight: bold;
+            background: linear-gradient(135deg, #fff9c4, #fff59d);
+            border: 1px solid rgba(15,47,70,.15);
+            padding: 10px;
+            font-weight: 700;
             text-align: center;
-            font-size: 10px;
+            font-size: 11px;
+            color: var(--brand-dark);
         }
         
         .obj-cell {
-            border: 2px solid #000;
-            padding: 6px;
-            min-height: 50px;
-            font-size: 9px;
-            line-height: 1.3;
+            border: 1px solid rgba(15,47,70,.15);
+            padding: 10px;
+            min-height: 70px;
+            font-size: 10px;
+            line-height: 1.5;
+            background: white;
         }
         
         .obj-mision {
@@ -287,18 +311,12 @@ $stmt_concl->close();
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #fff9c4;
-            padding: 10px;
+            background: linear-gradient(135deg, #fff9c4, #fff59d);
+            padding: 15px;
             text-align: center;
-            font-size: 9px;
-        }
-        
-        .obj-row-gen {
-            background-color: #b3e5fc;
-        }
-        
-        .obj-row-esp {
-            background-color: white;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--brand-dark);
         }
         
         .acciones-list {
@@ -309,51 +327,131 @@ $stmt_concl->close();
         
         .acciones-list li {
             position: relative;
-            padding: 6px 6px 6px 30px;
-            margin-bottom: 3px;
-            border: 2px solid #1976d2;
+            padding: 10px 10px 10px 40px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(15,47,70,.15);
             counter-increment: item;
-            font-size: 9px;
-            line-height: 1.3;
+            font-size: 11px;
+            line-height: 1.5;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            transition: all 0.3s ease;
+        }
+        
+        .acciones-list li:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,.08);
+            transform: translateX(5px);
         }
         
         .acciones-list li:before {
             content: counter(item);
             position: absolute;
-            left: 6px;
+            left: 10px;
             top: 50%;
             transform: translateY(-50%);
-            background-color: #1976d2;
+            background: linear-gradient(135deg, var(--brand-green), var(--brand-green-600));
             color: white;
-            width: 18px;
-            height: 18px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
-            font-weight: bold;
+            font-size: 11px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(24,179,107,.3);
         }
         
         .btn-container {
-            margin-top: 30px;
+            margin-top: 40px;
             text-align: center;
+            padding-top: 30px;
+            border-top: 2px solid rgba(15,47,70,.1);
         }
         
         .btn {
-            background-color: #1976d2;
+            background: linear-gradient(135deg, var(--brand-green), var(--brand-green-600));
             color: white;
-            padding: 12px 30px;
+            padding: 14px 32px;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             text-decoration: none;
             display: inline-block;
             margin: 5px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(24,179,107,.3);
+            transition: all 0.3s ease;
         }
         
         .btn:hover {
-            background-color: #1565c0;
+            background: linear-gradient(135deg, var(--brand-green-600), var(--brand-green));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(24,179,107,.4);
+            text-decoration: none;
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #2e7d32, #1b5e20);
+            box-shadow: 0 4px 12px rgba(46,125,50,.3);
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            box-shadow: 0 6px 20px rgba(46,125,50,.4);
+        }
+        
+        .editable-section {
+            position: relative;
+            margin: 15px 0;
+        }
+        
+        .edit-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid rgba(15,47,70,.15);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 12px;
+            resize: vertical;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            transition: all 0.3s ease;
+        }
+        
+        .edit-textarea:focus {
+            outline: none;
+            border-color: var(--brand-green);
+            box-shadow: 0 0 0 3px rgba(24,179,107,.1);
+        }
+        
+        .save-btn-container {
+            text-align: right;
+            margin-top: 12px;
+        }
+        
+        .mensaje-guardado {
+            display: none;
+            padding: 12px 20px;
+            margin: 12px 0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 13px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         @media print {
@@ -361,11 +459,23 @@ $stmt_concl->close();
                 padding: 0;
                 background: white;
             }
-            .btn-container {
+            .btn-container, .save-btn-container {
                 display: none;
             }
             .container {
                 box-shadow: none;
+                padding: 15px;
+            }
+            .edit-textarea {
+                border: 1px solid #ddd;
+                background: white;
+                padding: 10px;
+            }
+            .section-title {
+                break-after: avoid;
+            }
+            .foda-grid, .objetivos-grid {
+                break-inside: avoid;
             }
         }
     </style>
@@ -536,9 +646,13 @@ $stmt_concl->close();
         
         <!-- IDENTIFICACIÓN DE ESTRATEGIA -->
         <div class="section-title">IDENTIFICACIÓN DE ESTRATEGIA</div>
+        <div id="mensaje-estrategia" class="mensaje-guardado"></div>
         <p style="margin: 10px 0;">Escriba en el siguiente recuadro la estrategia identificada en la Matriz FODA</p>
-        <div class="content-box">
-            <?php echo !empty($estrategia_foda) ? nl2br(htmlspecialchars($estrategia_foda)) : 'No definida'; ?>
+        <div class="editable-section">
+            <textarea id="estrategia-textarea" class="edit-textarea" placeholder="Escriba aquí la estrategia identificada..."><?php echo htmlspecialchars($estrategia_foda); ?></textarea>
+            <div class="save-btn-container">
+                <button onclick="guardarEstrategia()" class="btn btn-success">Guardar Estrategia</button>
+            </div>
         </div>
         
         <!-- ACCIONES COMPETITIVAS -->
@@ -555,58 +669,65 @@ $stmt_concl->close();
         
         <!-- CONCLUSIONES -->
         <div class="section-title">CONCLUSIONES</div>
+        <div id="mensaje-conclusiones" class="mensaje-guardado"></div>
         <p style="margin: 10px 0;">Anote las conclusiones más relevantes de su Plan.</p>
-        <div class="content-box" style="min-height: 150px;">
-            <?php echo !empty($conclusiones) ? nl2br(htmlspecialchars($conclusiones)) : 'No definidas'; ?>
+        <div class="editable-section">
+            <textarea id="conclusiones-textarea" class="edit-textarea" style="min-height: 150px;" placeholder="Escriba aquí las conclusiones del plan estratégico..."><?php echo htmlspecialchars($conclusiones); ?></textarea>
+            <div class="save-btn-container">
+                <button onclick="guardarConclusiones()" class="btn btn-success">Guardar Conclusiones</button>
+            </div>
         </div>
         
         <div class="btn-container">
             <a href="dashboard.php" class="btn">Volver al Dashboard</a>
             <button onclick="window.print()" class="btn">Imprimir / Guardar PDF</button>
-            <button onclick="descargarPDF()" class="btn" style="background-color: #d32f2f;">Descargar PDF</button>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
-        function descargarPDF() {
-            const elemento = document.querySelector('.container');
-            const nombreEmpresa = '<?php echo preg_replace('/[^a-zA-Z0-9]/', '_', $empresa_data['nombre_empresa']); ?>';
-            const fecha = '<?php echo date('Y-m-d'); ?>';
+        function guardarEstrategia() {
+            const texto = document.getElementById('estrategia-textarea').value;
+            const formData = new FormData();
+            formData.append('tipo', 'estrategia');
+            formData.append('contenido', texto);
             
-            // Ocultar botones antes de generar PDF
-            const btnContainer = document.querySelector('.btn-container');
-            btnContainer.style.display = 'none';
+            fetch('guardar_resumen.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const mensaje = document.getElementById('mensaje-estrategia');
+                mensaje.textContent = data.message;
+                mensaje.style.display = 'block';
+                mensaje.style.backgroundColor = data.success ? '#4caf50' : '#f44336';
+                setTimeout(() => { mensaje.style.display = 'none'; }, 3000);
+            })
+            .catch(error => {
+                alert('Error al guardar: ' + error);
+            });
+        }
+        
+        function guardarConclusiones() {
+            const texto = document.getElementById('conclusiones-textarea').value;
+            const formData = new FormData();
+            formData.append('tipo', 'conclusiones');
+            formData.append('contenido', texto);
             
-            // Ajustar estilos para PDF
-            const originalPadding = elemento.style.padding;
-            elemento.style.padding = '15px';
-            elemento.style.fontSize = '10px';
-            
-            const opciones = {
-                margin: [5, 5, 5, 5],
-                filename: `Plan_Estrategico_${nombreEmpresa}_${fecha}.pdf`,
-                image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { 
-                    scale: 1.5,
-                    useCORS: true,
-                    letterRendering: true,
-                    logging: false
-                },
-                jsPDF: { 
-                    unit: 'mm', 
-                    format: 'a4', 
-                    orientation: 'portrait',
-                    compress: true
-                },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-            };
-            
-            html2pdf().set(opciones).from(elemento).save().then(() => {
-                // Restaurar estilos y mostrar botones
-                elemento.style.padding = originalPadding;
-                elemento.style.fontSize = '';
-                btnContainer.style.display = 'block';
+            fetch('guardar_resumen.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const mensaje = document.getElementById('mensaje-conclusiones');
+                mensaje.textContent = data.message;
+                mensaje.style.display = 'block';
+                mensaje.style.backgroundColor = data.success ? '#4caf50' : '#f44336';
+                setTimeout(() => { mensaje.style.display = 'none'; }, 3000);
+            })
+            .catch(error => {
+                alert('Error al guardar: ' + error);
             });
         }
     </script>
