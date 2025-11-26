@@ -15,9 +15,6 @@ require_once 'includes/db_connection.php';
 $id_empresa_actual = $_SESSION['id_empresa_actual'];
 $id_usuario = $_SESSION['id_usuario'];
 
-$id_empresa_actual = $_SESSION['id_empresa_actual'];
-$id_usuario = $_SESSION['id_usuario'];
-
 // Obtener datos de la empresa
 $stmt_empresa = $mysqli->prepare("SELECT nombre_empresa, mision, vision, valores, unidades_estrategicas, imagen FROM empresa WHERE id = ?");
 $stmt_empresa->bind_param("i", $id_empresa_actual);
@@ -65,7 +62,7 @@ while ($row = $result_foda->fetch_assoc()) {
 }
 $stmt_foda->close();
 
-// Obtener estrategia identificada y conclusiones desde resumen_ejecutivo
+// Obtener estrategia identificada y conclusiones
 $estrategia_foda = '';
 $conclusiones = '';
 $stmt_resumen = $mysqli->prepare("SELECT estrategia_identificada, conclusiones FROM resumen_ejecutivo WHERE id_empresa = ?");
@@ -78,7 +75,7 @@ if ($row_resumen = $res_resumen->fetch_assoc()) {
 }
 $stmt_resumen->close();
 
-// Obtener acciones competitivas (de matriz_came)
+// Obtener acciones competitivas
 $acciones_competitivas = [];
 $stmt_acciones = $mysqli->prepare("SELECT acciones_c, acciones_a, acciones_m, acciones_e FROM matriz_came WHERE id_empresa = ?");
 $stmt_acciones->bind_param("i", $id_empresa_actual);
@@ -93,7 +90,6 @@ if ($row_acc = $res_acciones->fetch_assoc()) {
     $acciones_competitivas = array_filter($acciones_competitivas);
 }
 $stmt_acciones->close();
-
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -119,7 +115,7 @@ $stmt_acciones->close();
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(180deg, #f0f6ff 0%, #e8f2ff 100%);
             padding: 20px;
-            line-height: 1.6;
+            line-height: 1.5;
             color: #333;
         }
         
@@ -132,12 +128,13 @@ $stmt_acciones->close();
             box-shadow: 0 10px 40px rgba(0,0,0,.12);
         }
         
+        /* HEADER */
         .header {
             background: linear-gradient(135deg, var(--brand-blue), var(--brand-dark));
             color: white;
             padding: 25px;
             text-align: center;
-            margin: -30px -30px 30px -30px;
+            margin: -30px -30px 20px -30px;
             border-radius: 12px 12px 0 0;
             box-shadow: 0 4px 20px rgba(0,0,0,.15);
         }
@@ -147,25 +144,25 @@ $stmt_acciones->close();
             margin: 0;
             font-weight: 700;
             text-shadow: 0 2px 4px rgba(0,0,0,.3);
+            text-transform: uppercase;
         }
         
         .index-tab {
             background: linear-gradient(135deg, #e57373, #d32f2f);
             color: white;
-            padding: 10px 20px;
+            padding: 8px 20px;
             display: inline-block;
             margin-bottom: 20px;
             font-weight: 700;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(211,47,47,.3);
             font-size: 13px;
-            letter-spacing: 0.5px;
         }
         
         .logo-container {
             text-align: center;
-            margin: 20px 0 30px 0;
-            padding: 30px;
+            margin: 10px 0 20px 0;
+            padding: 20px;
             border: 2px dashed rgba(15,47,70,.2);
             background: linear-gradient(135deg, #f8f9fa, #ffffff);
             border-radius: 12px;
@@ -175,54 +172,68 @@ $stmt_acciones->close();
             max-width: 200px;
             max-height: 120px;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,.1);
         }
         
+        /* TITULOS DE SECCIÓN */
         .section-title {
             background: linear-gradient(135deg, var(--brand-blue), var(--brand-dark));
             color: white;
-            padding: 12px 20px;
-            margin: 25px 0 15px 0;
+            padding: 8px 15px;
+            margin: 20px 0 10px 0;
             font-weight: 700;
-            font-size: 14px;
-            border-radius: 8px;
+            font-size: 13px;
+            border-radius: 6px;
             box-shadow: 0 2px 8px rgba(15,47,70,.2);
             letter-spacing: 0.5px;
+            page-break-after: avoid; 
         }
         
+        /* INFO ROWS */
+        .info-section {
+            display: block;
+            margin-bottom: 15px;
+        }
+
         .info-row {
             display: flex;
-            margin-bottom: 15px;
-            align-items: flex-start;
-            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+            gap: 15px;
         }
         
         .info-label {
             color: var(--brand-blue);
             font-weight: 700;
-            min-width: 200px;
+            min-width: 180px;
             font-size: 12px;
+            line-height: 1.2;
         }
         
         .info-value {
             flex: 1;
-            padding: 10px;
+            padding: 8px 12px;
             border: 1px solid rgba(15,47,70,.15);
             background: linear-gradient(135deg, #ffffff, #f8f9fa);
             border-radius: 6px;
             font-size: 12px;
+            display: flex;
+            align-items: center;
         }
         
+        /* CAJAS DE CONTENIDO */
         .content-box {
             border: 1px solid rgba(15,47,70,.15);
-            padding: 15px;
-            min-height: 80px;
-            margin-bottom: 20px;
+            padding: 12px;
+            min-height: 60px;
+            margin-bottom: 15px;
             background: linear-gradient(135deg, #ffffff, #f8f9fa);
             border-radius: 8px;
-            font-size: 12px;
+            font-size: 11px;
+            text-align: justify;
+            line-height: 1.4;
         }
         
+        /* TABLAS */
         .valores-table {
             width: 100%;
             border-collapse: separate;
@@ -234,8 +245,8 @@ $stmt_acciones->close();
         
         .valores-table td {
             border: 1px solid rgba(15,47,70,.15);
-            padding: 10px;
-            font-size: 12px;
+            padding: 8px;
+            font-size: 11px;
         }
         
         .valores-table td:first-child {
@@ -246,20 +257,21 @@ $stmt_acciones->close();
             color: var(--brand-blue);
         }
         
+        /* FODA */
         .foda-grid {
             display: grid;
-            grid-template-columns: 180px 1fr;
-            gap: 10px;
-            margin: 20px 0;
+            grid-template-columns: 140px 1fr;
+            gap: 8px;
+            margin: 15px 0;
         }
         
         .foda-cell {
             border: 1px solid rgba(15,47,70,.15);
-            padding: 15px;
-            min-height: 100px;
-            border-radius: 8px;
-            font-size: 11px;
-            line-height: 1.5;
+            padding: 10px;
+            min-height: 80px;
+            border-radius: 6px;
+            font-size: 10px;
+            line-height: 1.4;
         }
         
         .foda-label {
@@ -268,41 +280,45 @@ $stmt_acciones->close();
             align-items: center;
             justify-content: center;
             text-align: center;
-            font-size: 12px;
-            letter-spacing: 0.5px;
+            font-size: 11px;
+            color: #333;
         }
         
-        .foda-debilidades { background: linear-gradient(135deg, #fff9c4, #fff59d); }
-        .foda-amenazas { background: linear-gradient(135deg, #b3e5fc, #81d4fa); }
-        .foda-fortalezas { background: linear-gradient(135deg, #ffe0b2, #ffcc80); }
-        .foda-oportunidades { background: linear-gradient(135deg, #ffccbc, #ffab91); }
+        .foda-debilidades { background: #fff9c4; }
+        .foda-amenazas { background: #b3e5fc; }
+        .foda-fortalezas { background: #ffe0b2; }
+        .foda-oportunidades { background: #ffccbc; }
         
+        /* OBJETIVOS */
         .objetivos-grid {
             display: grid;
-            grid-template-columns: 140px 1fr 1fr;
+            grid-template-columns: 120px 1fr 1fr;
             gap: 0;
-            margin: 20px 0;
+            margin: 15px 0;
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 4px 12px rgba(0,0,0,.08);
+            border: 1px solid rgba(15,47,70,.15);
         }
         
         .obj-header {
-            background: linear-gradient(135deg, #fff9c4, #fff59d);
-            border: 1px solid rgba(15,47,70,.15);
-            padding: 10px;
+            background: #fff9c4;
+            border-bottom: 2px solid rgba(15,47,70,.15);
+            border-right: 1px solid rgba(15,47,70,.15);
+            padding: 8px;
             font-weight: 700;
             text-align: center;
-            font-size: 11px;
+            font-size: 10px;
             color: var(--brand-dark);
         }
         
         .obj-cell {
-            border: 1px solid rgba(15,47,70,.15);
-            padding: 10px;
-            min-height: 70px;
+            border-bottom: 1px solid rgba(15,47,70,.15);
+            border-right: 1px solid rgba(15,47,70,.15);
+            padding: 8px;
+            min-height: 60px;
             font-size: 10px;
-            line-height: 1.5;
+            line-height: 1.4;
             background: white;
         }
         
@@ -311,173 +327,173 @@ $stmt_acciones->close();
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #fff9c4, #fff59d);
-            padding: 15px;
+            background: #fff9c4;
+            padding: 10px;
             text-align: center;
             font-size: 10px;
             font-weight: 600;
             color: var(--brand-dark);
+            border-right: 1px solid rgba(15,47,70,.15);
         }
         
-        .acciones-list {
-            counter-reset: item;
-            list-style: none;
-            padding: 0;
-        }
-        
+        /* ACCIONES */
         .acciones-list li {
             position: relative;
-            padding: 10px 10px 10px 40px;
-            margin-bottom: 8px;
+            padding: 8px 8px 8px 35px;
+            margin-bottom: 6px;
             border: 1px solid rgba(15,47,70,.15);
-            counter-increment: item;
             font-size: 11px;
-            line-height: 1.5;
+            line-height: 1.4;
             border-radius: 6px;
-            background: linear-gradient(135deg, #ffffff, #f8f9fa);
-            transition: all 0.3s ease;
+            background: #ffffff;
+            list-style: none;
+            counter-increment: item;
         }
         
-        .acciones-list li:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,.08);
-            transform: translateX(5px);
-        }
+        .acciones-list { counter-reset: item; padding: 0; }
         
         .acciones-list li:before {
             content: counter(item);
             position: absolute;
-            left: 10px;
+            left: 8px;
             top: 50%;
             transform: translateY(-50%);
-            background: linear-gradient(135deg, var(--brand-green), var(--brand-green-600));
+            background: var(--brand-green);
             color: white;
-            width: 22px;
-            height: 22px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
-            box-shadow: 0 2px 8px rgba(24,179,107,.3);
         }
         
-        .btn-container {
-            margin-top: 40px;
-            text-align: center;
-            padding-top: 30px;
-            border-top: 2px solid rgba(15,47,70,.1);
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, var(--brand-green), var(--brand-green-600));
-            color: white;
-            padding: 14px 32px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            margin: 5px;
-            font-weight: 600;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(24,179,107,.3);
-            transition: all 0.3s ease;
-        }
-        
-        .btn:hover {
-            background: linear-gradient(135deg, var(--brand-green-600), var(--brand-green));
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(24,179,107,.4);
-            text-decoration: none;
-            color: white;
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, #2e7d32, #1b5e20);
-            box-shadow: 0 4px 12px rgba(46,125,50,.3);
-        }
-        
-        .btn-success:hover {
-            background: linear-gradient(135deg, #1b5e20, #2e7d32);
-            box-shadow: 0 6px 20px rgba(46,125,50,.4);
-        }
-        
-        .editable-section {
-            position: relative;
-            margin: 15px 0;
-        }
-        
-        .edit-textarea {
-            width: 100%;
-            min-height: 120px;
-            padding: 15px;
-            border: 2px solid rgba(15,47,70,.15);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 12px;
-            resize: vertical;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #ffffff, #f8f9fa);
-            transition: all 0.3s ease;
-        }
-        
-        .edit-textarea:focus {
-            outline: none;
-            border-color: var(--brand-green);
-            box-shadow: 0 0 0 3px rgba(24,179,107,.1);
-        }
-        
-        .save-btn-container {
-            text-align: right;
-            margin-top: 12px;
-        }
-        
-        .mensaje-guardado {
-            display: none;
-            padding: 12px 20px;
-            margin: 12px 0;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 13px;
-            animation: slideIn 0.3s ease;
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
+        /* UTILS */
+        .btn-container, .save-btn-container { text-align: center; margin-top: 20px; }
+        .btn { padding: 10px 25px; border-radius: 6px; border: none; color: white; background: var(--brand-green); cursor: pointer; text-decoration: none; display: inline-block; font-size: 14px; font-weight: 600; }
+        .edit-textarea { width: 100%; min-height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; }
+        .mensaje-guardado { display: none; padding: 10px; margin: 10px 0; border-radius: 6px; text-align: center; color: white; font-size: 12px; }
+
+        /* --- ESTILOS DE IMPRESIÓN OPTIMIZADOS (Compactación) --- */
         @media print {
+            @page {
+                margin: 8mm; /* Márgenes más ajustados */
+                size: A4;
+            }
+
             body {
-                padding: 0;
                 background: white;
+                padding: 0;
+                margin: 0;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color: #000;
             }
-            .btn-container, .save-btn-container {
-                display: none;
-            }
+
             .container {
                 box-shadow: none;
-                padding: 15px;
+                width: 100%;
+                max-width: 100%;
+                margin: 0;
+                border: 4px double var(--brand-dark); /* Borde doble formal */
+                padding: 15px !important;
+                min-height: 98vh;
             }
-            .edit-textarea {
-                border: 1px solid #ddd;
-                background: white;
-                padding: 10px;
+
+            /* OCULTAR INTERFAZ */
+            .btn-container, .save-btn-container, .index-tab, .mensaje-guardado, .screen-only, .edit-intro-text {
+                display: none !important;
             }
+            .print-only { display: block !important; }
+
+            /* HEADER COMPACTO */
+            .header {
+                margin: 0 0 10px 0;
+                padding: 10px; /* Menos padding */
+                border-radius: 4px;
+                background: var(--brand-blue) !important;
+                color: white !important;
+            }
+            .header h1 { font-size: 18px; } /* Texto más pequeño */
+            .header p { display: none; } /* Ocultar subtítulo "Resumen Ejecutivo" para ahorrar espacio */
+
+            .logo-container {
+                padding: 5px;
+                margin: 5px 0 10px 0;
+                border: none;
+                background: none;
+            }
+            .logo-container img { max-height: 60px; } /* Logo más pequeño */
+
+            /* DISTRIBUCIÓN HORIZONTAL DE INFO (Ahorra mucho espacio vertical) */
+            .info-section {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr 1fr; /* 3 Columnas */
+                gap: 10px;
+                margin-bottom: 15px;
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 10px;
+            }
+            
+            .info-row {
+                display: block; /* Stack label encima de value dentro de la celda */
+                margin-bottom: 0;
+            }
+            
+            .info-label {
+                min-width: auto;
+                font-size: 10px;
+                margin-bottom: 2px;
+                color: var(--brand-blue);
+            }
+            
+            .info-value {
+                font-size: 10px;
+                padding: 4px 8px;
+                background: none !important;
+                border: 1px solid #ccc;
+                min-height: auto;
+            }
+
+            /* MISIÓN Y VISIÓN LADO A LADO (2 Columnas) */
+            .mision-vision-wrapper {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+            
+            /* Títulos más compactos */
             .section-title {
-                break-after: avoid;
+                margin: 10px 0 5px 0;
+                padding: 5px 10px;
+                font-size: 11px;
+                background: var(--brand-dark) !important;
             }
-            .foda-grid, .objetivos-grid {
+
+            /* Contenido más compacto */
+            .content-box {
+                padding: 8px;
+                min-height: auto;
+                margin-bottom: 10px;
+                font-size: 10px;
+                border: 1px solid #ccc;
+                background: white !important;
+            }
+            
+            /* Ajustes de salto de página */
+            .section-title, h2, .objetivos-grid, .foda-grid, .valores-table, li {
                 break-inside: avoid;
+                page-break-inside: avoid;
             }
+            
+            .section-title { break-after: avoid; page-break-after: avoid; }
+            
+            a { text-decoration: none; color: #000; }
         }
+        
+        .print-only { display: none; }
     </style>
 </head>
 <body>
@@ -485,7 +501,8 @@ $stmt_acciones->close();
         <div class="index-tab">ÍNDICE</div>
         
         <div class="header">
-            <h1>Resumen ejecutivo PLAN ESTRATÉGICO</h1>
+            <h1>PLAN ESTRATÉGICO</h1>
+            <p>RESUMEN EJECUTIVO</p>
         </div>
         
         <div class="logo-container">
@@ -493,50 +510,52 @@ $stmt_acciones->close();
                 <img src="uploads/empresa_images/<?php echo htmlspecialchars($empresa_data['imagen']); ?>" 
                      alt="Logo de <?php echo htmlspecialchars($empresa_data['nombre_empresa']); ?>">
             <?php else: ?>
-                <p style="color: #999;">Inserte el logo de su empresa</p>
+                <p style="color: #999;" class="screen-only">Inserte el logo de su empresa</p>
             <?php endif; ?>
         </div>
         
-        <h2 style="text-align: center; margin: 15px 0 20px 0; font-size: 14px;">RESUMEN EJECUTIVO DEL PLAN ESTRATÉGICO</h2>
-        
-        <div class="info-row">
-            <div class="info-label">Nombre de la empresa / proyecto:</div>
-            <div class="info-value"><?php echo htmlspecialchars($empresa_data['nombre_empresa']); ?></div>
-        </div>
-        
-        <div class="info-row">
-            <div class="info-label">Fecha de elaboración:</div>
-            <div class="info-value"><?php echo date('d/m/Y'); ?></div>
-        </div>
-        
-        <div class="info-row">
-            <div class="info-label">Emprendedores / promotores:</div>
-            <div class="info-value">
-                <?php 
-                // Obtener nombre del usuario
-                $stmt_user = $mysqli->prepare("SELECT nombre FROM usuario WHERE id = ?");
-                $stmt_user->bind_param("i", $id_usuario);
-                $stmt_user->execute();
-                $user_data = $stmt_user->get_result()->fetch_assoc();
-                echo htmlspecialchars($user_data['nombre'] ?? '');
-                $stmt_user->close();
-                ?>
+        <div class="info-section">
+            <div class="info-row">
+                <div class="info-label">Empresa / Proyecto:</div>
+                <div class="info-value"><?php echo htmlspecialchars($empresa_data['nombre_empresa']); ?></div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label">Fecha elaboración:</div>
+                <div class="info-value"><?php echo date('d/m/Y'); ?></div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label">Emprendedores:</div>
+                <div class="info-value">
+                    <?php 
+                    $stmt_user = $mysqli->prepare("SELECT nombre FROM usuario WHERE id = ?");
+                    $stmt_user->bind_param("i", $id_usuario);
+                    $stmt_user->execute();
+                    $user_data = $stmt_user->get_result()->fetch_assoc();
+                    echo htmlspecialchars($user_data['nombre'] ?? '');
+                    $stmt_user->close();
+                    ?>
+                </div>
             </div>
         </div>
         
-        <!-- MISIÓN -->
-        <div class="section-title">MISIÓN</div>
-        <div class="content-box">
-            <?php echo !empty($empresa_data['mision']) ? nl2br(htmlspecialchars($empresa_data['mision'])) : 'No definida'; ?>
+        <div class="mision-vision-wrapper">
+            <div>
+                <div class="section-title">MISIÓN</div>
+                <div class="content-box">
+                    <?php echo !empty($empresa_data['mision']) ? nl2br(htmlspecialchars($empresa_data['mision'])) : 'No definida'; ?>
+                </div>
+            </div>
+            
+            <div>
+                <div class="section-title">VISIÓN</div>
+                <div class="content-box">
+                    <?php echo !empty($empresa_data['vision']) ? nl2br(htmlspecialchars($empresa_data['vision'])) : 'No definida'; ?>
+                </div>
+            </div>
         </div>
         
-        <!-- VISIÓN -->
-        <div class="section-title">VISIÓN</div>
-        <div class="content-box">
-            <?php echo !empty($empresa_data['vision']) ? nl2br(htmlspecialchars($empresa_data['vision'])) : 'No definida'; ?>
-        </div>
-        
-        <!-- VALORES -->
         <div class="section-title">VALORES</div>
         <table class="valores-table">
             <?php 
@@ -551,17 +570,15 @@ $stmt_acciones->close();
             <?php endfor; ?>
         </table>
         
-        <!-- UNIDADES ESTRATÉGICAS -->
         <div class="section-title">UNIDADES ESTRATÉGICAS</div>
         <div class="content-box">
             <?php echo !empty($empresa_data['unidades_estrategicas']) ? nl2br(htmlspecialchars($empresa_data['unidades_estrategicas'])) : 'No definidas'; ?>
         </div>
         
-        <!-- OBJETIVOS ESTRATÉGICOS -->
         <div class="section-title">OBJETIVOS ESTRATÉGICOS</div>
         <div class="objetivos-grid">
             <div class="obj-header obj-mision">MISIÓN</div>
-            <div class="obj-header">OBJETIVOS GENERALES O ESTRATÉGICOS</div>
+            <div class="obj-header">OBJETIVOS GENERALES</div>
             <div class="obj-header">OBJETIVOS ESPECÍFICOS</div>
             
             <?php 
@@ -578,7 +595,7 @@ $stmt_acciones->close();
                     <?php 
                     if ($objetivo && !empty($objetivo['especificos'])) {
                         foreach(array_slice($objetivo['especificos'], 0, 2) as $esp) {
-                            echo htmlspecialchars($esp['descripcion']) . '<br><br>';
+                            echo '• ' . htmlspecialchars($esp['descripcion']) . '<br><br>';
                         }
                     } else {
                         echo '&nbsp;';
@@ -588,7 +605,6 @@ $stmt_acciones->close();
             <?php endfor; ?>
         </div>
         
-        <!-- ANÁLISIS FODA -->
         <div class="section-title">ANÁLISIS FODA</div>
         <div class="foda-grid">
             <div class="foda-cell foda-label foda-debilidades">DEBILIDADES</div>
@@ -644,43 +660,60 @@ $stmt_acciones->close();
             </div>
         </div>
         
-        <!-- IDENTIFICACIÓN DE ESTRATEGIA -->
         <div class="section-title">IDENTIFICACIÓN DE ESTRATEGIA</div>
+        
         <div id="mensaje-estrategia" class="mensaje-guardado"></div>
-        <p style="margin: 10px 0;">Escriba en el siguiente recuadro la estrategia identificada en la Matriz FODA</p>
+        <p class="edit-intro-text" style="margin: 10px 0; color: #666; font-size: 11px;">Escriba en el siguiente recuadro la estrategia identificada en la Matriz FODA:</p>
+        
         <div class="editable-section">
-            <textarea id="estrategia-textarea" class="edit-textarea" placeholder="Escriba aquí la estrategia identificada..."><?php echo htmlspecialchars($estrategia_foda); ?></textarea>
-            <div class="save-btn-container">
-                <button onclick="guardarEstrategia()" class="btn btn-success">Guardar Estrategia</button>
+            <div class="print-only content-box">
+                <?php echo !empty($estrategia_foda) ? nl2br(htmlspecialchars($estrategia_foda)) : 'Sin estrategia definida.'; ?>
+            </div>
+            
+            <div class="screen-only">
+                <textarea id="estrategia-textarea" class="edit-textarea" placeholder="Escriba aquí la estrategia identificada..."><?php echo htmlspecialchars($estrategia_foda); ?></textarea>
+                <div class="save-btn-container">
+                    <button onclick="guardarEstrategia()" class="btn btn-success">Guardar Estrategia</button>
+                </div>
             </div>
         </div>
         
-        <!-- ACCIONES COMPETITIVAS -->
         <div class="section-title">ACCIONES COMPETITIVAS</div>
         <ul class="acciones-list">
             <?php 
             $max_acciones = 16;
             for($i = 0; $i < $max_acciones; $i++): 
                 $accion = isset($acciones_competitivas[$i]) ? $acciones_competitivas[$i] : '';
+                if(!empty($accion) || $i < 3): 
             ?>
                 <li><?php echo !empty($accion) ? htmlspecialchars($accion) : '&nbsp;'; ?></li>
-            <?php endfor; ?>
+            <?php 
+                endif;
+            endfor; 
+            ?>
         </ul>
         
-        <!-- CONCLUSIONES -->
         <div class="section-title">CONCLUSIONES</div>
+        
         <div id="mensaje-conclusiones" class="mensaje-guardado"></div>
-        <p style="margin: 10px 0;">Anote las conclusiones más relevantes de su Plan.</p>
+        <p class="edit-intro-text" style="margin: 10px 0; color: #666; font-size: 11px;">Anote las conclusiones más relevantes de su Plan:</p>
+        
         <div class="editable-section">
-            <textarea id="conclusiones-textarea" class="edit-textarea" style="min-height: 150px;" placeholder="Escriba aquí las conclusiones del plan estratégico..."><?php echo htmlspecialchars($conclusiones); ?></textarea>
-            <div class="save-btn-container">
-                <button onclick="guardarConclusiones()" class="btn btn-success">Guardar Conclusiones</button>
+            <div class="print-only content-box">
+                <?php echo !empty($conclusiones) ? nl2br(htmlspecialchars($conclusiones)) : 'Sin conclusiones registradas.'; ?>
+            </div>
+            
+            <div class="screen-only">
+                <textarea id="conclusiones-textarea" class="edit-textarea" style="min-height: 150px;" placeholder="Escriba aquí las conclusiones del plan estratégico..."><?php echo htmlspecialchars($conclusiones); ?></textarea>
+                <div class="save-btn-container">
+                    <button onclick="guardarConclusiones()" class="btn btn-success">Guardar Conclusiones</button>
+                </div>
             </div>
         </div>
         
-        <div class="btn-container">
+        <div class="btn-container screen-only">
             <a href="dashboard.php" class="btn">Volver al Dashboard</a>
-            <button onclick="window.print()" class="btn">Imprimir / Guardar PDF</button>
+            <button onclick="window.print()" class="btn" style="background: var(--brand-dark);">🖨️ Imprimir / Guardar PDF</button>
         </div>
     </div>
 
@@ -690,6 +723,10 @@ $stmt_acciones->close();
             const formData = new FormData();
             formData.append('tipo', 'estrategia');
             formData.append('contenido', texto);
+            
+            const btn = document.querySelector('#estrategia-textarea + .save-btn-container .btn');
+            const originalText = btn.innerText;
+            btn.innerText = 'Guardando...';
             
             fetch('guardar_resumen.php', {
                 method: 'POST',
@@ -701,10 +738,18 @@ $stmt_acciones->close();
                 mensaje.textContent = data.message;
                 mensaje.style.display = 'block';
                 mensaje.style.backgroundColor = data.success ? '#4caf50' : '#f44336';
-                setTimeout(() => { mensaje.style.display = 'none'; }, 3000);
+                
+                btn.innerText = originalText;
+                
+                if(data.success) {
+                   setTimeout(() => { location.reload(); }, 1000);
+                } else {
+                   setTimeout(() => { mensaje.style.display = 'none'; }, 3000);
+                }
             })
             .catch(error => {
                 alert('Error al guardar: ' + error);
+                btn.innerText = originalText;
             });
         }
         
@@ -713,6 +758,10 @@ $stmt_acciones->close();
             const formData = new FormData();
             formData.append('tipo', 'conclusiones');
             formData.append('contenido', texto);
+            
+            const btn = document.querySelector('#conclusiones-textarea + .save-btn-container .btn');
+            const originalText = btn.innerText;
+            btn.innerText = 'Guardando...';
             
             fetch('guardar_resumen.php', {
                 method: 'POST',
@@ -724,10 +773,18 @@ $stmt_acciones->close();
                 mensaje.textContent = data.message;
                 mensaje.style.display = 'block';
                 mensaje.style.backgroundColor = data.success ? '#4caf50' : '#f44336';
-                setTimeout(() => { mensaje.style.display = 'none'; }, 3000);
+                
+                btn.innerText = originalText;
+
+                if(data.success) {
+                   setTimeout(() => { location.reload(); }, 1000);
+                } else {
+                   setTimeout(() => { mensaje.style.display = 'none'; }, 3000);
+                }
             })
             .catch(error => {
                 alert('Error al guardar: ' + error);
+                btn.innerText = originalText;
             });
         }
     </script>

@@ -6,22 +6,19 @@ if (!isset($_SESSION['id_usuario'])) {
     exit();
 }
 
-$pageStyles = ['css/dashboard.css', 'css/collaboration.css'];
 require_once 'includes/db_connection.php';
 require_once 'includes/header.php'; // Incluye Bootstrap CSS
 
 $id_usuario_actual = $_SESSION['id_usuario'];
 $nombre_usuario_actual = $_SESSION['nombre'];
 
-// --- Lógica para seleccionar o crear empresa/proyecto ---
+// --- Lógica de Negocio (INTACTA) ---
 
-// Variable para el ID de la empresa actualmente seleccionada
 $id_empresa_seleccionada = null;
 if (isset($_SESSION['id_empresa_actual'])) {
     $id_empresa_seleccionada = $_SESSION['id_empresa_actual'];
 }
 
-// Obtener las empresas del usuario actual (propias y colaborativas)
 $empresas = [];
 $stmt = $mysqli->prepare("SELECT id, nombre_empresa FROM empresa WHERE id_usuario = ?");
 $stmt->bind_param("i", $id_usuario_actual);
@@ -33,7 +30,6 @@ while ($fila = $resultado_empresas->fetch_assoc()) {
 }
 $stmt->close();
 
-// Obtener empresas donde el usuario es colaborador
 $stmt_colaborativas = $mysqli->prepare("
     SELECT e.id, e.nombre_empresa, u.nombre, u.apellido 
     FROM empresa e 
@@ -54,17 +50,15 @@ $stmt_colaborativas->close();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['seleccionar_empresa_id'])) {
         $_SESSION['id_empresa_actual'] = $_POST['seleccionar_empresa_id'];
-        // Redirigir para refrescar y cargar el dashboard con la empresa seleccionada
         header('Location: dashboard.php');
         exit();
     } elseif (isset($_POST['nueva_nombre_empresa'])) {
         $nueva_nombre_empresa = $_POST['nueva_nombre_empresa'];
-        // Insertar la nueva empresa
         $stmt_insert = $mysqli->prepare("INSERT INTO empresa (id_usuario, nombre_empresa) VALUES (?, ?)");
         $stmt_insert->bind_param("is", $id_usuario_actual, $nueva_nombre_empresa);
         if ($stmt_insert->execute()) {
-            $_SESSION['id_empresa_actual'] = $mysqli->insert_id; // Guardar el ID de la nueva empresa
-            header('Location: dashboard.php'); // Redirigir al dashboard con la nueva empresa seleccionada
+            $_SESSION['id_empresa_actual'] = $mysqli->insert_id;
+            header('Location: dashboard.php');
             exit();
         } else {
             echo '<div class="alert alert-danger">Error al crear la nueva empresa.</div>';
@@ -73,278 +67,584 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Obtener el nombre de la empresa seleccionada y verificar si es propietario
-$nombre_empresa_actual = "Ninguna seleccionada";
+$nombre_empresa_actual = "Selecciona un Proyecto";
 $es_propietario_empresa = false;
+$imagen_actual_db = '';
+
 if ($id_empresa_seleccionada) {
-    $stmt_nombre = $mysqli->prepare("SELECT nombre_empresa, id_usuario FROM empresa WHERE id = ?");
-    $stmt_nombre->bind_param("i", $id_empresa_seleccionada);
-    $stmt_nombre->execute();
-    $stmt_nombre->bind_result($nombre_empresa_actual_db, $id_propietario_empresa);
-    $stmt_nombre->fetch();
-    $stmt_nombre->close();
+    $stmt_info = $mysqli->prepare("SELECT nombre_empresa, id_usuario, imagen FROM empresa WHERE id = ?");
+    $stmt_info->bind_param("i", $id_empresa_seleccionada);
+    $stmt_info->execute();
+    $stmt_info->bind_result($nombre_empresa_actual_db, $id_propietario_empresa, $img_db);
+    $stmt_info->fetch();
+    $stmt_info->close();
     if ($nombre_empresa_actual_db) {
         $nombre_empresa_actual = $nombre_empresa_actual_db;
         $es_propietario_empresa = ($id_propietario_empresa == $id_usuario_actual);
+        $imagen_actual_db = $img_db;
     }
 }
 ?>
 
 <style>
+    /* --- ESTILOS PRO+++ (DARK MODE EMPRESARIAL) --- */
+    :root {
+        --bg-dark: #0B1120;       /* Fondo ultra oscuro */
+        --bg-card: #1E293B;       /* Fondo de tarjetas/módulos */
+        --bg-card-hover: #334155; /* Hover de tarjetas */
+        --brand-primary: #3B82F6; /* Azul brillante */
+        --brand-accent: #F43F5E;  /* Rojo/Rosa neón */
+        --brand-green: #10B981;   /* Verde éxito */
+        --text-main: #F8FAFC;     /* Blanco/Gris muy claro */
+        --text-muted: #94A3B8;    /* Gris medio */
+        --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+        --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
+    }
+
     body {
-        background-color: #1a1a2e; /* Fondo oscuro */
-        color: #e0e0e0; /* Texto claro */
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-dark);
+        background-image: 
+            radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 25%), 
+            radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.05), transparent 25%);
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        color: var(--text-main);
+        min-height: 100vh;
     }
-    .navbar {
-        background: linear-gradient(to right, #f8f9fa, #0f3460) !important;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+
+    /* Navbar */
+    .navbar-dashboard {
+        background: rgba(15, 23, 42, 0.85) !important;
+        backdrop-filter: blur(12px);
+        border-bottom: var(--glass-border);
+        padding: 1rem 0;
     }
-    .navbar .navbar-brand {
-        color: #16213e !important;
+    
+    .navbar-brand {
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: white !important;
+    }
+
+    .navbar-text { color: var(--text-muted) !important; }
+    .navbar-text strong { color: white !important; }
+
+    /* Hero Banner (Decorativo Empresarial) */
+    .intro-section {
+        position: relative;
+        height: 280px;
+        border-radius: 24px;
+        overflow: hidden;
+        margin-bottom: -60px; /* Superposición con el contenido */
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        border: var(--glass-border);
+        background-color: var(--bg-card);
+    }
+
+    .intro-bg {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2301&auto=format&fit=crop');
+        background-size: cover;
+        background-position: center;
+        filter: brightness(0.4) contrast(1.1);
+    }
+
+    .intro-content {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0 3rem;
+    }
+
+    .intro-content h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(to right, #fff, #cbd5e1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .intro-content p {
+        color: #cbd5e1;
+        font-size: 1.1rem;
+        max-width: 600px;
+    }
+
+    /* Contenedor Principal elevado */
+    .main-content-wrapper {
+        position: relative;
+        z-index: 10;
+        padding-top: 0;
+    }
+
+    /* Barra de Control Sticky */
+    .sticky-top-actions {
+        background: rgba(30, 41, 59, 0.8);
+        backdrop-filter: blur(16px);
+        border: var(--glass-border);
+        border-radius: 16px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .current-project-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+    }
+
+    .company-current {
+        font-size: 1.25rem;
         font-weight: 700;
-        text-shadow: none !important;
-    }
-    .navbar .navbar-text {
-        color: #f0f0f0 !important;
-    }
-    .navbar .navbar-text strong {
-        color: #ffffff !important;
-    }
-    .card {
-        background-color: #16213e; /* Fondo de tarjeta más oscuro */
-        border: 1px solid #0f3460;
-        box-shadow: 0 0 15px rgba(255,255,255,0.05);
-    }
-    .card-header {
-        background-color: #0f3460;
-        color: #ffffffff; 
-        font-weight: bold;
-        border-bottom: 1px solid #1a1a2e;
-    }
-    .btn-primary, .btn-outline-primary {
-        background-color: #e94560;
-        border-color: #e94560;
         color: white;
     }
-    .btn-primary:hover, .btn-outline-primary:hover {
-        background-color: #ff6a80;
-        border-color: #ff6a80;
+
+    /* Botones de Acción */
+    .btn-action {
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
-    .intro-section {
-        background: linear-gradient(45deg, #0f3460, #1a1a2e);
-        padding: 4rem 2rem;
-        border-radius: 10px;
+
+    .btn-primary-glow {
+        background: var(--brand-primary);
+        color: white;
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    }
+    .btn-primary-glow:hover {
+        background: #2563EB;
+        transform: translateY(-2px);
+        box-shadow: 0 0 25px rgba(59, 130, 246, 0.6);
+        color: white;
+    }
+
+    .btn-outline-glow {
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.2);
+        color: white;
+    }
+    .btn-outline-glow:hover {
+        border-color: white;
+        background: rgba(255,255,255,0.05);
+        color: white;
+    }
+
+    /* Sección de Logo (Restaurada y Estilizada) */
+    .empresa-image-section {
+        background: var(--bg-card);
+        border: 1px dashed rgba(255,255,255,0.15);
+        border-radius: 16px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         margin-bottom: 3rem;
-        text-align: center;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.4);
     }
-    .intro-section h1 {
-        color: #a4d6ffff;
-        font-weight: 700;
-        margin-bottom: 1rem;
-    }
-    .intro-section p {
-        font-size: 1.1rem;
-        max-width: 800px;
-        margin: 0 auto;
-        line-height: 1.8;
-    }
-    .module-button {
+
+    .logo-preview-container {
+        width: 80px;
+        height: 80px;
+        background: #0f172a;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        text-align: center;
-        height: 120px; /* Tamaño fijo para los botones */
-        font-size: 1.1rem;
-        font-weight: bold;
-        color: #e0e0e0;
-        background-color: #2a3a5e;
-        border: 1px solid #0f3460;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        text-decoration: none; /* Quitar subrayado del link */
+        border: 1px solid rgba(255,255,255,0.1);
+        overflow: hidden;
     }
-    .module-button:hover {
-        background-color: #0f3460;
-        color: #a4d6ffff;
+    
+    .logo-preview-container img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    /* --- TARJETAS DE MÓDULOS (DARK MODE) --- */
+    .section-divider {
+        display: flex;
+        align-items: center;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: 700;
+        margin: 2rem 0 1.5rem 0;
+    }
+    .section-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(255,255,255,0.1), transparent);
+        margin-left: 15px;
+    }
+
+    .module-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background: linear-gradient(145deg, var(--bg-card), #162032);
+        border: var(--glass-border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-decoration: none !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .module-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        background: var(--bg-card-hover);
+        border-color: rgba(255,255,255,0.3);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
-    .sticky-top-actions {
-        position: sticky;
-        top: 0;
-        z-index: 1020; /* Asegura que esté por encima del contenido */
-        background-color: #1a1a2e; /* Fondo para que no se vea a través */
-        padding-top: 1rem;
-        padding-bottom: 1rem;
+
+    /* Efecto borde brillante al hover */
+    .module-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; width: 2px; height: 0;
+        background: var(--brand-green);
+        transition: height 0.3s ease;
+    }
+    .module-card:hover::before { height: 100%; }
+
+    .module-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.05);
+        color: var(--brand-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
         margin-bottom: 1rem;
-        border-bottom: 1px solid #0f3460;
+        transition: all 0.3s;
+    }
+
+    .module-card:hover .module-icon {
+        background: var(--brand-primary);
+        color: white;
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+    }
+
+    .module-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: white; /* Texto blanco */
+        margin-bottom: 0.5rem;
+    }
+
+    .module-desc {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+    }
+
+    .module-number {
+        position: absolute;
+        top: 1rem; right: 1.5rem;
+        font-size: 3rem;
+        font-weight: 900;
+        color: rgba(255,255,255,0.03);
+        line-height: 1;
+    }
+
+    /* Tarjeta Resumen (Especial) */
+    .summary-card {
+        background: linear-gradient(135deg, #059669, #047857);
+        color: white;
+        border: none;
+        box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+    }
+    .summary-card:hover {
+        background: linear-gradient(135deg, #10B981, #059669);
+        box-shadow: 0 0 40px rgba(16, 185, 129, 0.4);
+    }
+    .summary-card .module-icon {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+    .summary-card .module-desc { color: rgba(255,255,255,0.8); }
+
+    /* Modales Oscuros */
+    .modal-content {
+        background-color: #1E293B;
+        color: white;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .modal-header { border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .modal-footer { border-top: 1px solid rgba(255,255,255,0.1); }
+    .btn-close { filter: invert(1); }
+    
+    .form-control, .form-select {
+        background-color: #0F172A;
+        border: 1px solid rgba(255,255,255,0.2);
+        color: white;
+    }
+    .form-control:focus, .form-select:focus {
+        background-color: #0F172A;
+        border-color: var(--brand-primary);
+        color: white;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
     }
 </style>
 
-<nav class="navbar navbar-expand-lg navbar-dashboard mb-4">
-    <div class="container-fluid">
+<nav class="navbar navbar-expand-lg navbar-dashboard fixed-top">
+    <div class="container">
         <a class="navbar-brand" href="dashboard.php">
-            <img src="images/logo.png" alt="NexStrategy-IT" style="height: 40px; margin-right: 10px;">
-            Plan Estratégico de TI
+            <i class="fas fa-layer-group me-2 text-primary"></i>
+            NexStrategy<span class="text-white-50">-IT</span>
         </a>
-        <div class="d-flex">
-            <span class="navbar-text me-3">
-                Bienvenido, <strong><?php echo htmlspecialchars($nombre_usuario_actual); ?></strong>
-            </span>
-            <a href="logout.php" class="btn btn-logout btn-sm">Cerrar Sesión</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <i class="fas fa-bars text-white"></i>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav ms-auto align-items-center gap-3">
+                <li class="nav-item">
+                    <span class="navbar-text small">
+                        Bienvenido, <strong><?php echo htmlspecialchars($nombre_usuario_actual); ?></strong>
+                    </span>
+                </li>
+                <li class="nav-item">
+                    <a href="logout.php" class="btn btn-outline-glow btn-sm rounded-pill px-3">
+                        <i class="fas fa-power-off me-1"></i> Salir
+                    </a>
+                </li>
+            </ul>
         </div>
     </div>
 </nav>
 
-<div class="container">
-    <div class="intro-section">
-        <h1>Generador de Plan Estratégico de TI</h1>
-        <p>Bienvenido al módulo interactivo para construir y gestionar el Plan Estratégico de TI de tu organización. Aquí podrás definir, analizar y consolidar los pilares que impulsarán el éxito tecnológico de tu empresa.</p>
-        <p>A través de un proceso guiado, estructurarás la visión, misión, valores, objetivos, y realizarás análisis clave como FODA, PEST, Cadena de Valor y Matriz CAME, culminando en un resumen ejecutivo integral. ¡Comencemos a trazar el futuro digital de tu empresa!</p>
-    </div>
-
-    <div class="row mb-4 align-items-center sticky-top-actions">
-        <div class="col-md-6">
-            <h4 class="mb-0 text-white-50">Empresa Actual: <span class="company-current"><?php echo htmlspecialchars($nombre_empresa_actual); ?></span></h4>
-        </div>
-        <div class="col-md-6 text-end">
-            <?php if ($es_propietario_empresa && $id_empresa_seleccionada): ?>
-                <a href="gestionar_colaboradores.php" class="btn-invite-collaborators me-2">
-                    <i class="fas fa-user-plus"></i> Invitar Colaboradores
-                </a>
-            <?php endif; ?>
-            <button class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#seleccionarEmpresaModal">
-                Cambiar Proyecto
-            </button>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#crearEmpresaModal">
-                <i class="fas fa-plus-circle"></i> Crear Nuevo Proyecto
-            </button>
-        </div>
-    </div>
-
-    <h2 class="text-white-50 mb-3">INFORMACIÓN DE LA EMPRESA</h2>
+<div class="container pb-5" style="margin-top: 100px;">
     
-    <!-- Sección de imagen de la empresa -->
-    <?php if ($es_propietario_empresa && $id_empresa_seleccionada): ?>
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="empresa-image-section">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h5 class="text-white mb-2">
-                            <i class="fas fa-image me-2"></i>Logo/Imagen de la Empresa
-                        </h5>
-                        <p class="text-white-50 mb-0">Sube una imagen representativa de tu empresa para el plan ejecutivo</p>
-                    </div>
-                    <div class="col-md-4 text-end">
-                        <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#uploadImageModal">
-                            <i class="fas fa-upload me-2"></i>Subir Imagen
-                        </button>
-                    </div>
+    <div class="intro-section">
+        <div class="intro-bg"></div>
+        <div class="intro-content">
+            <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 mb-3 align-self-start">
+                <i class="fas fa-rocket me-1"></i> Dashboard Ejecutivo
+            </span>
+            <h1>Estrategia Digital</h1>
+            <p>Plataforma integral para el diseño, análisis y ejecución de planes estratégicos de tecnología.</p>
+        </div>
+    </div>
+
+    <div class="main-content-wrapper">
+        <div class="sticky-top-actions">
+            <div class="flex-grow-1">
+                <div class="current-project-label">Proyecto Activo</div>
+                <div class="company-current text-truncate">
+                    <?php echo htmlspecialchars($nombre_empresa_actual); ?>
+                    <?php if ($es_propietario_empresa): ?>
+                        <span class="badge bg-success ms-2" style="font-size: 0.4em; vertical-align: middle;">ADMIN</span>
+                    <?php endif; ?>
                 </div>
-                
-                <!-- Mostrar imagen actual si existe -->
-                <?php 
-                $stmt_img = $mysqli->prepare("SELECT imagen FROM empresa WHERE id = ?");
-                $stmt_img->bind_param("i", $id_empresa_seleccionada);
-                $stmt_img->execute();
-                $stmt_img->bind_result($imagen_actual);
-                $stmt_img->fetch();
-                $stmt_img->close();
-                
-                if (!empty($imagen_actual)): ?>
-                <div class="current-image-preview mt-3">
-                    <img src="uploads/empresa_images/<?php echo htmlspecialchars($imagen_actual); ?>" 
-                         alt="Imagen actual" class="current-empresa-image">
-                    <div class="image-actions mt-2">
-                        <button class="btn btn-danger btn-sm" onclick="deleteImage()">
-                            <i class="fas fa-trash me-1"></i>Eliminar
-                        </button>
-                    </div>
-                </div>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button class="btn-action btn-outline-glow" data-bs-toggle="modal" data-bs-target="#seleccionarEmpresaModal">
+                    <i class="fas fa-exchange-alt"></i> Cambiar
+                </button>
+                <button class="btn-action btn-primary-glow" data-bs-toggle="modal" data-bs-target="#crearEmpresaModal">
+                    <i class="fas fa-plus"></i> Nuevo Proyecto
+                </button>
+                <?php if ($es_propietario_empresa && $id_empresa_seleccionada): ?>
+                    <a href="gestionar_colaboradores.php" class="btn-action btn-outline-glow text-decoration-none">
+                        <i class="fas fa-users"></i> Equipo
+                    </a>
                 <?php endif; ?>
             </div>
         </div>
-    </div>
-    <?php endif; ?>
-    
-    <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <a href="mision.php" class="module-button">1. MISIÓN</a>
-        </div>
-        <div class="col-md-3">
-            <a href="vision.php" class="module-button">2. VISIÓN</a>
-        </div>
-        <div class="col-md-3">
-            <a href="valores.php" class="module-button">3. VALORES</a>
-        </div>
-        <div class="col-md-3">
-            <a href="objetivos.php" class="module-button">4. OBJETIVOS</a>
-        </div>
-    </div>
 
-    <h2 class="text-white-50 mb-3">ANÁLISIS ESTRATÉGICO</h2>
-    <div class="row g-4 mb-5">
-        <div class="col-md-4">
-            <a href="analisis_info.php" class="module-button">5. ANÁLISIS INTERNO Y EXTERNO (FODA)</a>
+        <?php if ($es_propietario_empresa && $id_empresa_seleccionada): ?>
+        <div class="empresa-image-section">
+            <div class="d-flex align-items-center gap-3">
+                <div class="logo-preview-container">
+                    <?php if (!empty($imagen_actual_db)): ?>
+                        <img src="uploads/empresa_images/<?php echo htmlspecialchars($imagen_actual_db); ?>" alt="Logo">
+                    <?php else: ?>
+                        <i class="fas fa-building text-muted fa-2x"></i>
+                    <?php endif; ?>
+                </div>
+                <div>
+                    <h5 class="text-white mb-1">Logo Corporativo</h5>
+                    <p class="text-muted small mb-0">Aparecerá en el resumen ejecutivo y reportes PDF.</p>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <?php if (!empty($imagen_actual_db)): ?>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteImage()"><i class="fas fa-trash"></i></button>
+                <?php endif; ?>
+                <button class="btn btn-sm btn-outline-glow" data-bs-toggle="modal" data-bs-target="#uploadImageModal">
+                    <i class="fas fa-upload me-2"></i>Subir Logo
+                </button>
+            </div>
         </div>
-        <div class="col-md-4">
-            <a href="cadena_valor.php" class="module-button">6. CADENA DE VALOR</a>
-        </div>
-        <div class="col-md-4">
-            <a href="matriz_bcg.php" class="module-button">7. MATRIZ BCG (Participación)</a>
-        </div>
-        <div class="col-md-4">
-            <a href="porter_5fuerzas.php" class="module-button">8. LAS 5 FUERZAS DE PORTER</a>
-        </div>
-        <div class="col-md-4">
-            <a href="analisis_pest.php" class="module-button">9. PEST</a>
-        </div>
-        <div class="col-md-4">
-            <a href="id_estrategias.php" class="module-button">10. IDENTIFICACIÓN ESTRATEGIA</a>
-        </div>
-        <div class="col-md-4">
-            <a href="matriz_came.php" class="module-button">11. MATRIZ CAME</a>
-        </div>
-    </div>
+        <?php endif; ?>
 
-    <h2 class="text-white-50 mb-3">PLAN EJECUTIVO</h2>
-    <div class="row g-4 mb-5">
-        <div class="col-12">
-            <a href="resumen_plan.php" class="module-button btn-success">RESUMEN DEL PLAN EJECUTIVO</a>
+        <div class="section-divider"><i class="fas fa-compass me-2 text-primary"></i> Fase 1: Definición</div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <a href="mision.php" class="module-card">
+                    <div class="module-number">01</div>
+                    <div class="module-icon"><i class="fas fa-flag"></i></div>
+                    <h3 class="module-title">Misión</h3>
+                    <p class="module-desc">Razón de ser y propósito fundamental de la organización.</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="vision.php" class="module-card">
+                    <div class="module-number">02</div>
+                    <div class="module-icon"><i class="fas fa-eye"></i></div>
+                    <h3 class="module-title">Visión</h3>
+                    <p class="module-desc">Aspiración futura y dirección estratégica a largo plazo.</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="valores.php" class="module-card">
+                    <div class="module-number">03</div>
+                    <div class="module-icon"><i class="fas fa-gem"></i></div>
+                    <h3 class="module-title">Valores</h3>
+                    <p class="module-desc">Principios éticos y cultura organizacional.</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="objetivos.php" class="module-card">
+                    <div class="module-number">04</div>
+                    <div class="module-icon"><i class="fas fa-bullseye"></i></div>
+                    <h3 class="module-title">Objetivos</h3>
+                    <p class="module-desc">Metas cuantificables para medir el éxito.</p>
+                </a>
+            </div>
         </div>
+
+        <div class="section-divider"><i class="fas fa-chart-pie me-2 text-warning"></i> Fase 2: Análisis</div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <a href="analisis_info.php" class="module-card">
+                    <div class="module-number">05</div>
+                    <div class="module-icon"><i class="fas fa-swatchbook"></i></div>
+                    <h3 class="module-title">Análisis FODA</h3>
+                    <p class="module-desc">Diagnóstico de Fortalezas, Oportunidades, Debilidades y Amenazas.</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <a href="cadena_valor.php" class="module-card">
+                    <div class="module-number">06</div>
+                    <div class="module-icon"><i class="fas fa-link"></i></div>
+                    <h3 class="module-title">Cadena de Valor</h3>
+                    <p class="module-desc">Actividades generadoras de valor y margen.</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <a href="matriz_bcg.php" class="module-card">
+                    <div class="module-number">07</div>
+                    <div class="module-icon"><i class="fas fa-th-large"></i></div>
+                    <h3 class="module-title">Matriz BCG</h3>
+                    <p class="module-desc">Cartera de productos: Crecimiento vs Participación.</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <a href="porter_5fuerzas.php" class="module-card">
+                    <div class="module-number">08</div>
+                    <div class="module-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h3 class="module-title">5 Fuerzas Porter</h3>
+                    <p class="module-desc">Análisis de competitividad y entorno de mercado.</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <a href="analisis_pest.php" class="module-card">
+                    <div class="module-number">09</div>
+                    <div class="module-icon"><i class="fas fa-globe"></i></div>
+                    <h3 class="module-title">Análisis PEST</h3>
+                    <p class="module-desc">Factores Políticos, Económicos, Sociales y Tecnológicos.</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <a href="id_estrategias.php" class="module-card">
+                    <div class="module-number">10</div>
+                    <div class="module-icon"><i class="fas fa-chess-knight"></i></div>
+                    <h3 class="module-title">Estrategias</h3>
+                    <p class="module-desc">Cruce de variables para definir acciones estratégicas.</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <a href="matriz_came.php" class="module-card">
+                    <div class="module-number">11</div>
+                    <div class="module-icon"><i class="fas fa-random"></i></div>
+                    <h3 class="module-title">Matriz CAME</h3>
+                    <p class="module-desc">Corregir, Afrontar, Mantener y Explotar.</p>
+                </a>
+            </div>
+        </div>
+
+        <div class="section-divider"><i class="fas fa-file-signature me-2 text-success"></i> Fase 3: Entrega</div>
+        <div class="row mb-5">
+            <div class="col-12">
+                <a href="resumen_plan.php" class="module-card summary-card flex-row align-items-center gap-4">
+                    <div class="module-icon mb-0 text-success bg-white"><i class="fas fa-check"></i></div>
+                    <div>
+                        <h3 class="module-title mb-1">Resumen Ejecutivo Final</h3>
+                        <p class="module-desc text-white-50 mb-0">Consolidación de todos los análisis en un reporte profesional listo para exportar.</p>
+                    </div>
+                    <div class="ms-auto text-white fs-4"><i class="fas fa-chevron-right"></i></div>
+                </a>
+            </div>
+        </div>
+
     </div>
 </div>
 
-<div class="modal fade" id="seleccionarEmpresaModal" tabindex="-1" aria-labelledby="seleccionarEmpresaModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content bg-dark text-white">
+<div class="modal fade" id="seleccionarEmpresaModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="seleccionarEmpresaModalLabel">Seleccionar Empresa/Proyecto</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title fw-bold">Cambiar de Proyecto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <?php if (empty($empresas)): ?>
-                    <p>No tienes empresas creadas. Por favor, crea una primero.</p>
+                    <div class="text-center py-4">
+                        <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No hay proyectos disponibles.</p>
+                    </div>
                 <?php else: ?>
                     <form action="dashboard.php" method="POST">
-                        <div class="mb-3">
-                            <label for="empresaSelect" class="form-label">Elige una empresa:</label>
-                            <select class="form-select" id="empresaSelect" name="seleccionar_empresa_id" required>
+                        <div class="mb-4">
+                            <label class="form-label text-uppercase small text-muted fw-bold">Seleccione un proyecto</label>
+                            <select class="form-select" name="seleccionar_empresa_id" required>
                                 <?php foreach ($empresas as $emp): ?>
                                     <option value="<?php echo htmlspecialchars($emp['id']); ?>"
                                         <?php echo ($emp['id'] == $id_empresa_seleccionada) ? 'selected' : ''; ?>>
                                         <?php echo htmlspecialchars($emp['nombre_empresa']); ?>
                                         <?php if ($emp['tipo'] === 'colaborativa'): ?>
-                                            (Colaboración - <?php echo htmlspecialchars($emp['propietario']); ?>)
+                                            (Colaboración)
                                         <?php endif; ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Seleccionar</button>
+                        <button type="submit" class="btn btn-primary-glow w-100 py-2">Cargar Dashboard</button>
                     </form>
                 <?php endif; ?>
             </div>
@@ -352,22 +652,48 @@ if ($id_empresa_seleccionada) {
     </div>
 </div>
 
-<div class="modal fade" id="crearEmpresaModal" tabindex="-1" aria-labelledby="crearEmpresaModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content bg-dark text-white">
+<div class="modal fade" id="crearEmpresaModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="crearEmpresaModalLabel">Crear Nuevo Proyecto</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title fw-bold">Nuevo Proyecto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form action="dashboard.php" method="POST">
-                    <div class="mb-3">
-                        <label for="nuevaEmpresaNombre" class="form-label">Nombre del Nuevo Proyecto:</label>
-                        <input type="text" class="form-control" id="nuevaEmpresaNombre" name="nueva_nombre_empresa" required>
+                    <div class="mb-4">
+                        <label class="form-label text-uppercase small text-muted fw-bold">Nombre de la Organización</label>
+                        <input type="text" class="form-control" name="nueva_nombre_empresa" placeholder="Ej. Tech Solutions Inc." required>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Crear Proyecto</button>
+                    <button type="submit" class="btn btn-primary-glow w-100 py-2">Crear Proyecto</button>
                 </form>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="uploadImageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Subir Logo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="uploadImageForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Archivo de Imagen</label>
+                        <input type="file" class="form-control" id="empresa_image" name="empresa_image" accept="image/*" required>
+                    </div>
+                    <div id="imagePreview" class="mt-3 text-center p-3 border border-dashed rounded" style="display: none; border-color: rgba(255,255,255,0.1) !important;">
+                        <img id="previewImg" src="" alt="Preview" style="max-height: 100px;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-glow" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary-glow">Guardar</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -376,43 +702,6 @@ if ($id_empresa_seleccionada) {
 require_once 'includes/footer.php'; 
 $mysqli->close();
 ?>
-
-<!-- Modal para subir imagen -->
-<div class="modal fade" id="uploadImageModal" tabindex="-1" aria-labelledby="uploadImageModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content bg-dark text-white">
-            <div class="modal-header">
-                <h5 class="modal-title" id="uploadImageModalLabel">
-                    <i class="fas fa-image me-2"></i>Subir Imagen de la Empresa
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="uploadImageForm" enctype="multipart/form-data">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="empresa_image" class="form-label">Seleccionar imagen</label>
-                        <input type="file" class="form-control" id="empresa_image" name="empresa_image" 
-                               accept="image/*" required>
-                        <div class="form-text text-white-50">
-                            Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB
-                        </div>
-                    </div>
-                    
-                    <!-- Preview de la imagen -->
-                    <div id="imagePreview" class="mt-3" style="display: none;">
-                        <img id="previewImg" src="" alt="Preview" class="img-preview">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-upload me-2"></i>Subir Imagen
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 <script>
 // Preview de imagen
@@ -431,35 +720,20 @@ document.getElementById('empresa_image').addEventListener('change', function(e) 
 // Subir imagen
 document.getElementById('uploadImageForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
     const formData = new FormData();
     const fileInput = document.getElementById('empresa_image');
     
-    if (fileInput.files.length === 0) {
-        alert('Por favor selecciona una imagen');
-        return;
-    }
+    if (fileInput.files.length === 0) { alert('Por favor selecciona una imagen'); return; }
     
     formData.append('empresa_image', fileInput.files[0]);
     formData.append('id_empresa', <?php echo $id_empresa_seleccionada ?? 0; ?>);
     
-    fetch('upload_empresa_image.php', {
-        method: 'POST',
-        body: formData
-    })
+    fetch('upload_empresa_image.php', { method: 'POST', body: formData })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            alert('Imagen subida correctamente');
-            location.reload();
-        } else {
-            alert('Error: ' + data.message);
-        }
+        if (data.success) { location.reload(); } else { alert('Error: ' + data.message); }
     })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error al subir la imagen');
-    });
+    .catch(error => { console.error('Error:', error); alert('Error al subir la imagen'); });
 });
 
 // Eliminar imagen
@@ -467,21 +741,12 @@ function deleteImage() {
     if (confirm('¿Estás seguro de que quieres eliminar la imagen?')) {
         fetch('delete_empresa_image.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                id_empresa: <?php echo $id_empresa_seleccionada ?? 0; ?>
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_empresa: <?php echo $id_empresa_seleccionada ?? 0; ?> })
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                alert('Imagen eliminada correctamente');
-                location.reload();
-            } else {
-                alert('Error: ' + data.message);
-            }
+            if (data.success) { location.reload(); } else { alert('Error: ' + data.message); }
         });
     }
 }
